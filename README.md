@@ -1,14 +1,14 @@
 # Dynamic Stock Portfolio Optimization on IDX30 Using Adaptive Genetic Algorithm (AGA) and Walk-Forward Validation
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://www.python.org/)
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://portfolio-optimization-aga.streamlit.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Framework: Modular](https://img.shields.io/badge/Framework-Modular%20Python%20%2B%20Streamlit-success.svg)]()
 [![Validation: Walk--Forward](https://img.shields.io/badge/Validation-Walk--Forward%20Out--of--Sample-orange.svg)]()
 [![Statistical Tests: Shapiro--Wilk%20%2B%20Wilcoxon](https://img.shields.io/badge/Hypothesis%20Testing-p%20%3C%200.001-brightgreen.svg)]()
 
-> **Undergraduate Thesis Project (*Skripsi*)**  
-> **Author:** Miftahullah Suryanugraha  
+> 🌐 **Live Interactive Web Dashboard:** [https://portfolio-optimization-aga.streamlit.app](https://portfolio-optimization-aga.streamlit.app)  
+> **Undergraduate Thesis Project (*Skripsi*)** | **Author:** Miftahullah Suryanugraha  
 > **Keywords:** Quantitative Finance, Portfolio Optimization, Adaptive Genetic Algorithm (AGA), Mean-Variance Theory, Walk-Forward Optimization, Non-Parametric Statistics, Transaction Cost Modeling.
 
 ---
@@ -172,9 +172,13 @@ Differences $\Delta = \text{Metric}_{\text{AGA}} - \text{Metric}_{\text{SGA}}$ w
 
 ## 🖥️ Interactive Web Dashboard (Streamlit App)
 
-The repository includes a production-ready, interactive **Streamlit Web Application (`app.py`)** designed for live demonstration to recruiters and technical evaluators:
+> 🚀 **Live Demo Available Online:** [https://portfolio-optimization-aga.streamlit.app](https://portfolio-optimization-aga.streamlit.app)
 
-### Features
+The repository includes a production-ready, interactive **Streamlit Web Application (`app.py`)** designed for live demonstration to recruiters, researchers, and technical evaluators:
+
+![Streamlit Live Dashboard Preview](results/figures/streamlit_dashboard_preview.png)
+
+### Key Features
 1. **🏆 Tab 1 — Thesis 4-Phase WFO Showcase (Instant Load):**
    - KPI metrics & final wealth conversion in Indonesian Rupiah (IDR).
    - Interactive **Plotly dual-axis curves**: Daily cumulative wealth growth and peak-to-trough drawdowns across all 4 out-of-sample forward phases.
@@ -195,12 +199,8 @@ The repository includes a production-ready, interactive **Streamlit Web Applicat
 streamlit run app.py
 ```
 
-### 1-Click Free Cloud Deployment (Streamlit Community Cloud)
-You can deploy a free public demo of this dashboard in under 2 minutes:
-1. Push this repository to your GitHub account.
-2. Go to [share.streamlit.io](https://share.streamlit.io/) and sign in with GitHub.
-3. Click **"New app"**, select your repository, branch (`main`), and set the main file path to `app.py`.
-4. Click **"Deploy"**. Your interactive app will be live at `https://<your-app-name>.streamlit.app/`—ready to paste directly into your CV and LinkedIn profile!
+### Streamlit Community Cloud Deployment
+The app is deployed and continuously integrated from this repository's `main` branch via [Streamlit Community Cloud](https://share.streamlit.io/). Any push to `main` automatically triggers a zero-downtime redeployment to [https://portfolio-optimization-aga.streamlit.app](https://portfolio-optimization-aga.streamlit.app).
 
 ---
 

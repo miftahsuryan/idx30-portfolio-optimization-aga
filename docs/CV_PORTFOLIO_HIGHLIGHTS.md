@@ -8,9 +8,12 @@ Tersedia dalam dua bahasa: **English** (standar internasional) dan **Bahasa Indo
 
 ## English Versions (Recommended for Tech & International Roles)
 
-### Project Title Options
-- **IDX30 Stock Portfolio Optimization using Adaptive Genetic Algorithm & Walk-Forward Validation**
-- **Dynamic Portfolio Optimization Engine: Adaptive Genetic Algorithm (AGA) with Walk-Forward Backtesting**
+### Project Title & Links
+- **Title Options:**
+  - *IDX30 Stock Portfolio Optimization using Adaptive Genetic Algorithm & Walk-Forward Validation*
+  - *Dynamic Portfolio Optimization Engine: Adaptive Genetic Algorithm (AGA) with Walk-Forward Backtesting*
+- **Live Demo:** [https://portfolio-optimization-aga.streamlit.app](https://portfolio-optimization-aga.streamlit.app)
+- **GitHub Repository:** [https://github.com/miftahsuryan/idx30-portfolio-optimization-aga](https://github.com/miftahsuryan/idx30-portfolio-optimization-aga)
 
 ### Option A: Compact Format (3 High-Impact Bullet Points — Ideal for 1-Page Resume)
 * **Developed an end-to-end portfolio optimization framework** using an **Adaptive Genetic Algorithm (AGA)** on Indonesian Blue-Chip stocks (IDX30), dynamically adjusting crossover ($P_c$) and mutation ($P_m$) rates to prevent premature convergence.
@@ -36,8 +39,10 @@ Tersedia dalam dua bahasa: **English** (standar internasional) dan **Bahasa Indo
 
 ## Versi Bahasa Indonesia (Untuk CV & Perusahaan Nasional)
 
-### Judul Proyek
-- **Optimasi Portofolio Saham IDX30 Menggunakan Adaptive Genetic Algorithm (AGA) dan Walk-Forward Validation**
+### Judul & Tautan Proyek untuk CV
+- **Pilihan Judul:** *Optimasi Portofolio Saham IDX30 Menggunakan Adaptive Genetic Algorithm (AGA) dan Walk-Forward Validation*
+- **Live Demo:** [https://portfolio-optimization-aga.streamlit.app](https://portfolio-optimization-aga.streamlit.app)
+- **GitHub Repository:** [https://github.com/miftahsuryan/idx30-portfolio-optimization-aga](https://github.com/miftahsuryan/idx30-portfolio-optimization-aga)
 
 ### Opsi A: Format Ringkas (3 Poin Utama — Cocok untuk Resume 1 Halaman)
 * **Mengembangkan sistem optimasi portofolio investasi** berbasis **Adaptive Genetic Algorithm (AGA)** pada 22 saham konsisten indeks IDX30, mengadaptasi probabilitas *crossover* ($P_c$) dan mutasi ($P_m$) secara dinamis guna mengatasi konvergensi prematur.
