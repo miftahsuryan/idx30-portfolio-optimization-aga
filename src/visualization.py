@@ -65,7 +65,10 @@ def plot_evaluation_metrics(
         ax.axhline(y=0, color="black", linewidth=1, alpha=0.6)
 
         if "%" in metric_name:
-            ax.yaxis.set_major_formatter(mtick.PercentFormatter())
+            if "Cost" in metric_name:
+                ax.yaxis.set_major_formatter(mtick.PercentFormatter(decimals=1))
+            else:
+                ax.yaxis.set_major_formatter(mtick.PercentFormatter(decimals=0))
 
         max_abs = max(np.abs(metric_values)) if len(metric_values) > 0 else 1.0
         offset = max_abs * 0.03 if max_abs > 0 else 0.01
