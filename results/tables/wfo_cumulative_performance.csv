@@ -1,0 +1,5 @@
+Rank,Strategy,Total Return (%),Annual Return (%),Annual Volatility (%),Sharpe Ratio,Max Drawdown (%),Transaction Cost (%),Final Portfolio Value
+1,"Adaptive Genetic Algorithm (AGA, 4x Rebalanced)",46.4914,50.5937,21.2094,2.1025,-15.7424,0.4291,1.4649
+2,Equal Weight (1/N Benchmark),38.5142,41.8176,22.441,1.5961,-18.7795,0.15,1.3851
+3,"Standard Genetic Algorithm (SGA, 4x Rebalanced)",33.897,36.7545,21.2583,1.4467,-17.3522,0.4979,1.339
+4,"IDX30 Index (Market Benchmark, 4x Rebalanced)",13.4829,14.526,22.6332,0.3767,-17.1428,0.3775,1.1348

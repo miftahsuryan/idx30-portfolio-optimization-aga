@@ -1,0 +1,13 @@
+Phase,Metric,Mean SGA,Std SGA,Mean AGA,Std AGA,Normality Test,Normality p-value,Distribution,Statistical Test,Statistic,p-value,Significant (p<0.05)
+Phase 1,Sharpe Ratio,0.040993,0.004558,0.046926,0.002741,Shapiro-Wilk,0.463569,Normal,Paired t-test,3.114459,0.012429,True
+Phase 2,Sharpe Ratio,0.025845,0.006746,0.033629,0.002057,Shapiro-Wilk,0.038636,Non-Normal,Wilcoxon Signed-Rank,0.0,0.001953,True
+Phase 3,Sharpe Ratio,0.051836,0.007653,0.055105,0.003599,Shapiro-Wilk,0.317137,Normal,Paired t-test,1.945867,0.083519,False
+Phase 4,Sharpe Ratio,0.056923,0.006109,0.061369,0.004175,Shapiro-Wilk,0.914355,Normal,Paired t-test,1.651376,0.133056,False
+Phase 1,Fitness (Objective),0.0168,0.003267,0.011102,0.000943,Shapiro-Wilk,0.706612,Normal,Paired t-test,-6.281968,0.000144,True
+Phase 2,Fitness (Objective),0.028264,0.001703,0.02216,0.000594,Shapiro-Wilk,0.500916,Normal,Paired t-test,-9.456456,6e-06,True
+Phase 3,Fitness (Objective),0.00486,0.002529,-0.000841,0.001058,Shapiro-Wilk,0.512746,Normal,Paired t-test,-8.00505,2.2e-05,True
+Phase 4,Fitness (Objective),-0.001956,0.001619,-0.007153,0.000941,Shapiro-Wilk,0.367356,Normal,Paired t-test,-8.77183,1.1e-05,True
+Phase 1,Runtime (s),17.212568,0.471982,16.405148,0.965063,Shapiro-Wilk,0.00826,Non-Normal,Wilcoxon Signed-Rank,10.0,0.083984,False
+Phase 2,Runtime (s),17.1491,0.791582,16.397596,0.660293,Shapiro-Wilk,0.466429,Normal,Paired t-test,-2.456025,0.036395,True
+Phase 3,Runtime (s),16.629338,0.312072,16.447205,0.58579,Shapiro-Wilk,0.334928,Normal,Paired t-test,-1.043789,0.323807,False
+Phase 4,Runtime (s),16.418357,0.236087,16.476154,0.706906,Shapiro-Wilk,0.33286,Normal,Paired t-test,0.268875,0.794088,False
