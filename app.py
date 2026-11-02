@@ -1,9 +1,9 @@
-"""Interactive Streamlit Dashboard for IDX30 Portfolio Optimization.
+"""IDX30 Portfolio Analytics Platform.
 
-Dual-Mode Web Application:
-1. Thesis Walk-Forward Optimization (WFO) Showcase (Instant pre-computed results).
-2. Live Portfolio Optimizer & Backtest Simulator (Real-time AGA vs. SGA execution).
-3. IDX30 Constituent Asset Explorer & Correlation Analytics.
+Quantitative Research & Allocation Framework:
+- Regularized Mean-Variance Optimization using Adaptive Genetic Algorithm (AGA).
+- 4-Phase Rolling Walk-Forward Backtesting with Transaction Cost Frictions.
+- Dynamic Operator Control ($P_c, P_m$) and Constraint Enforcement.
 """
 
 import os
@@ -31,58 +31,154 @@ from src.config import (
 )
 
 # ==============================================================================
-# Page Configuration & Styling
+# Page Configuration & Institutional Theme
 # ==============================================================================
 st.set_page_config(
-    page_title="IDX30 Portfolio Optimization | Adaptive GA Dashboard",
-    page_icon="📈",
+    page_title="IDX30 Portfolio Analytics | AGA Terminal",
+    page_icon="https://cdn-icons-png.flaticon.com/512/2620/2620611.png",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# Custom CSS for Modern Quantitative Dashboard
+# Minimalist, High-Finance Typography & Components
 st.markdown(
     """
     <style>
-    .main-header {
-        font-size: 2.2rem;
-        font-weight: 800;
-        color: #1f77b4;
-        margin-bottom: 0.2rem;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        color: #0f172a;
     }
-    .sub-header {
-        font-size: 1.05rem;
-        color: #555555;
-        margin-bottom: 1.5rem;
-    }
-    .metric-card {
-        background-color: #f8f9fa;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        padding: 16px;
-        text-align: center;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    .metric-value {
-        font-size: 1.6rem;
-        font-weight: 700;
-        color: #1f77b4;
-    }
-    .metric-label {
-        font-size: 0.85rem;
-        color: #6c757d;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    .badge-tag {
-        display: inline-block;
-        padding: 2px 8px;
+
+    .kicker {
+        font-family: 'JetBrains Mono', monospace;
         font-size: 0.75rem;
         font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #64748b;
+        margin-bottom: 0.25rem;
+    }
+
+    .terminal-title {
+        font-size: 2.1rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #0f172a;
+        margin-bottom: 0.35rem;
+        line-height: 1.2;
+    }
+
+    .terminal-subtitle {
+        font-size: 0.95rem;
+        color: #475569;
+        margin-bottom: 1.25rem;
+        line-height: 1.5;
+    }
+
+    .meta-badge-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .meta-badge {
+        font-family: 'JetBrains Mono', monospace;
+        display: inline-flex;
+        align-items: center;
+        padding: 0.2rem 0.65rem;
+        font-size: 0.72rem;
+        font-weight: 500;
         border-radius: 4px;
-        background-color: #e3f2fd;
-        color: #0d47a1;
-        margin-right: 4px;
+        background-color: #f1f5f9;
+        color: #334155;
+        border: 1px solid #e2e8f0;
+    }
+
+    .stat-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 1.1rem 1rem;
+        margin-bottom: 0.75rem;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    }
+
+    .stat-label {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        margin-bottom: 0.35rem;
+    }
+
+    .stat-value {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 1.65rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #0f172a;
+        line-height: 1.1;
+        margin-bottom: 0.35rem;
+    }
+
+    .stat-delta-positive {
+        display: inline-block;
+        padding: 0.15rem 0.45rem;
+        font-size: 0.72rem;
+        font-weight: 600;
+        border-radius: 3px;
+        background-color: #ecfdf5;
+        color: #065f46;
+    }
+
+    .stat-delta-neutral {
+        display: inline-block;
+        padding: 0.15rem 0.45rem;
+        font-size: 0.72rem;
+        font-weight: 600;
+        border-radius: 3px;
+        background-color: #f1f5f9;
+        color: #475569;
+    }
+
+    .callout-box {
+        background-color: #f8fafc;
+        border-left: 3px solid #1e40af;
+        border-radius: 0 4px 4px 0;
+        padding: 0.85rem 1rem;
+        font-size: 0.875rem;
+        color: #334155;
+        line-height: 1.5;
+        margin-bottom: 1.25rem;
+    }
+
+    /* Style Streamlit Tabs for clean tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #64748b;
+        padding: 8px 16px;
+        border-radius: 4px 4px 0 0;
+    }
+
+    .stTabs [aria-selected="true"] {
+        color: #1e40af !important;
+        border-bottom: 2px solid #1e40af !important;
+    }
+
+    /* Dataframe styling */
+    .dataframe {
+        font-size: 0.82rem !important;
     }
     </style>
     """,
@@ -94,14 +190,15 @@ st.markdown(
 # Cached Data Loaders
 # ==============================================================================
 @st.cache_data
-def load_all_datasets() -> Tuple[pd.DataFrame, pd.DataFrame, List[str], pd.DataFrame]:
+def load_all_datasets() -> Tuple[pd.DataFrame, pd.DataFrame, List[str], pd.DataFrame, pd.Series]:
     raw_path = "data/raw/IDX30-Scraping.csv"
     list_path = "data/raw/IDX30-List.csv"
     df_raw = src.load_raw_stock_data(raw_path)
     df_clean = src.preprocess_stock_data(df_raw)
     consistent_tickers = src.get_consistent_idx30_tickers(list_path)
     df_selected = src.prepare_study_dataset(df_clean, consistent_tickers)
-    return df_raw, df_clean, consistent_tickers, df_selected
+    last_prices = df_clean.groupby("ticker")["Close"].last()
+    return df_raw, df_clean, consistent_tickers, df_selected, last_prices
 
 
 @st.cache_data
@@ -113,7 +210,7 @@ def load_wfo_weights() -> Tuple[pd.DataFrame, pd.DataFrame]:
 
 @st.cache_data
 def compute_wfo_time_series(capital_idr: float) -> Tuple[Dict[str, any], Dict[str, any], Dict[str, any], Dict[str, any]]:
-    df_raw, _, consistent_tickers, df_selected = load_all_datasets()
+    df_raw, _, consistent_tickers, df_selected, _ = load_all_datasets()
     w_aga_df, w_sga_df = load_wfo_weights()
 
     phases = [
@@ -159,16 +256,39 @@ def compute_wfo_time_series(capital_idr: float) -> Tuple[Dict[str, any], Dict[st
 # Helper Formatting Functions
 # ==============================================================================
 def format_idr(value: float) -> str:
-    """Format floating currency values into Indonesian Rupiah (IDR)."""
+    """Format numeric values into formatted Indonesian Rupiah (IDR)."""
     return f"Rp {value:,.0f}".replace(",", ".")
 
 
+# Institutional Plotly Layout Configuration
+PLOTLY_THEME = dict(
+    plot_bgcolor="#ffffff",
+    paper_bgcolor="#ffffff",
+    font=dict(family="Inter, sans-serif", size=11, color="#334155"),
+    margin=dict(l=40, r=20, t=30, b=30),
+    xaxis=dict(
+        showgrid=True,
+        gridcolor="#f1f5f9",
+        linecolor="#e2e8f0",
+        tickcolor="#cbd5e1",
+        zeroline=False,
+    ),
+    yaxis=dict(
+        showgrid=True,
+        gridcolor="#f1f5f9",
+        linecolor="#e2e8f0",
+        tickcolor="#cbd5e1",
+        zeroline=False,
+    ),
+)
+
+
 # ==============================================================================
-# Sidebar UI & Parameters
+# Sidebar Navigation & Execution Controls
 # ==============================================================================
 with st.sidebar:
-    st.markdown("### 📊 Portfolio Settings")
-    st.markdown("Customize simulation capital & trading parameters.")
+    st.markdown('<div class="kicker">Execution Environment</div>', unsafe_allow_html=True)
+    st.markdown("### Portfolio Sizing")
 
     capital_idr = st.number_input(
         "Initial Capital (IDR):",
@@ -177,114 +297,162 @@ with st.sidebar:
         value=100_000_000,
         step=10_000_000,
         format="%d",
-        help="Nominal starting capital used to scale portfolio values and share allocations.",
+        help="Initial capital pool used to calculate terminal portfolio values and lot-sized allocations.",
     )
-    st.caption(f"Nominal: **{format_idr(capital_idr)}**")
+    st.markdown(f"**Base Capital:** `{format_idr(capital_idr)}`")
 
     st.markdown("---")
-    st.markdown("### 🔍 Model & Benchmark Info")
+    st.markdown('<div class="kicker">Market Frictions</div>', unsafe_allow_html=True)
     st.markdown(
         """
-        - **Asset Universe:** 22 Consistent IDX30 Stocks
-        - **Objective:** Maximize Sharpe Ratio with HHI Penalty
-        - **Evaluation:** 4-Phase Walk-Forward Optimization
-        - **Trading Frictions:** Buy 0.15%, Sell 0.25%
-        - **Risk-Free Rate:** 6.0% p.a.
+        - **Asset Universe:** 22 Consistently-Listed IDX30 Equities
+        - **Risk-Free Rate:** 6.00% p.a. (Bank Indonesia BI-Rate Benchmark)
+        - **Transaction Slippage / Brokerage:**
+          - Acquisition (Buy): `0.15%`
+          - Liquidation (Sell): `0.25%` (incl. Final Income Tax)
+        - **Rebalancing Schedule:** Quarterly Expanding Window
         """
     )
+
     st.markdown("---")
-    st.markdown("### 👨‍💻 Research Attribution")
+    st.markdown('<div class="kicker">Attribution & Codebase</div>', unsafe_allow_html=True)
     st.markdown(
         """
         **Author:** Miftahullah Suryanugraha  
-        *Undergraduate Thesis Project (Skripsi)*  
-        [GitHub Repository](https://github.com/miftahsuryan/idx30-portfolio-optimization-aga)
+        *Undergraduate Thesis in Informatics Engineering*  
+        [Source Repository (GitHub)](https://github.com/miftahsuryan/idx30-portfolio-optimization-aga)
         """
     )
 
-# Load base data
-df_raw, df_clean, consistent_tickers, df_selected = load_all_datasets()
+# Load underlying dataset
+df_raw, df_clean, consistent_tickers, df_selected, last_prices = load_all_datasets()
 w_aga_df, w_sga_df = load_wfo_weights()
 
 # ==============================================================================
-# Main Application Header
+# Header Section
 # ==============================================================================
-st.markdown('<div class="main-header">📈 IDX30 Stock Portfolio Optimization Engine</div>', unsafe_allow_html=True)
+st.markdown('<div class="kicker">Quantitative Research & Investment Terminal</div>', unsafe_allow_html=True)
+st.markdown('<div class="terminal-title">IDX30 Adaptive Portfolio Allocation Framework</div>', unsafe_allow_html=True)
 st.markdown(
-    '<div class="sub-header">Adaptive Genetic Algorithm (AGA) with 4-Phase Walk-Forward Backtesting and Dynamic Operator Control</div>',
+    '<div class="terminal-subtitle">Regularized Mean-Variance Optimization using Adaptive Genetic Algorithm (AGA) with 4-Phase Out-of-Sample Walk-Forward Validation.</div>',
     unsafe_allow_html=True,
 )
 
-# Tabs
+st.markdown(
+    """
+    <div class="meta-badge-container">
+        <span class="meta-badge">UNIVERSE: 22 IDX30 EQUITIES</span>
+        <span class="meta-badge">MODEL: MEAN-VARIANCE + HHI PENALTY</span>
+        <span class="meta-badge">OPERATOR CONTROL: DYNAMIC (SRINIVAS & PATNAIK)</span>
+        <span class="meta-badge">VALIDATION: 4-PHASE WALK-FORWARD (2025-2026)</span>
+        <span class="meta-badge">BENCHMARK: IDX30 & 1/N EQUAL WEIGHT</span>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+# Main Navigation Tabs
 tab1, tab2, tab3 = st.tabs([
-    "🏆 Thesis 4-Phase WFO Showcase",
-    "⚡ Live Portfolio Optimizer & Simulator",
-    "📊 IDX30 Asset Explorer & Correlation",
+    "Walk-Forward Performance (OOS)",
+    "Algorithm Optimization Simulation",
+    "Asset Universe & Risk Diagnostics",
 ])
 
 # ==============================================================================
-# TAB 1: THESIS WFO SHOWCASE (Instant Load)
+# TAB 1: WALK-FORWARD PERFORMANCE (OUT-OF-SAMPLE)
 # ==============================================================================
 with tab1:
-    st.markdown("### 🎯 Out-of-Sample Walk-Forward Optimization (Jan 2025 – Jan 2026)")
-    st.info(
-        "💡 **Walk-Forward Optimization (WFO)** evaluates the portfolio strictly out-of-sample across 4 distinct rebalancing phases with realistic price drift and transaction fees (0.15% buy, 0.25% sell). Results below show pre-computed thesis benchmarks."
+    st.markdown(
+        """
+        <div class="callout-box">
+            <strong>Methodology Note:</strong> This backtest evaluates portfolio allocations strictly out-of-sample over 4 quarterly rebalancing phases (January 2025 – January 2026). The model incorporates continuous intra-phase asset price drift, capital replenishment, and asymmetric transaction costs (0.15% acquisition, 0.25% liquidation).
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
-    # Compute continuous curves
+    # Reconstruct multi-phase portfolio trajectories
     res_aga, res_sga, res_eq, res_idx = compute_wfo_time_series(capital_idr)
 
-    # KPI Top Cards
-    kpi_col1, kpi_col2, kpi_col3, kpi_col4, kpi_col5 = st.columns(5)
-    with kpi_col1:
-        st.metric(
-            label="AGA Total Return",
-            value=f"{res_aga['Total Return'] * 100:.2f}%",
-            delta=f"+{(res_aga['Total Return'] - res_idx['Total Return']) * 100:.2f}% vs IDX30",
+    # Metric Cards Top Row
+    col_c1, col_c2, col_c3, col_c4, col_c5 = st.columns(5)
+
+    with col_c1:
+        st.markdown(
+            f"""
+            <div class="stat-card">
+                <div class="stat-label">Total Out-of-Sample Return</div>
+                <div class="stat-value">{res_aga['Total Return'] * 100:.2f}%</div>
+                <span class="stat-delta-positive">+{(res_aga['Total Return'] - res_idx['Total Return']) * 100:.2f}% vs IDX30</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
-    with kpi_col2:
-        st.metric(
-            label="AGA Sharpe Ratio",
-            value=f"{res_aga['Sharpe Ratio']:.4f}",
-            delta=f"+{res_aga['Sharpe Ratio'] - res_idx['Sharpe Ratio']:.4f} vs IDX30",
+
+    with col_c2:
+        st.markdown(
+            f"""
+            <div class="stat-card">
+                <div class="stat-label">Annualized Sharpe Ratio</div>
+                <div class="stat-value">{res_aga['Sharpe Ratio']:.4f}</div>
+                <span class="stat-delta-positive">+{res_aga['Sharpe Ratio'] - res_idx['Sharpe Ratio']:.4f} vs IDX30</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
-    with kpi_col3:
-        st.metric(
-            label="AGA Annualized Return",
-            value=f"{res_aga['Annual Return'] * 100:.2f}%",
-            delta=f"+{(res_aga['Annual Return'] - res_sga['Annual Return']) * 100:.2f}% vs SGA",
+
+    with col_c3:
+        st.markdown(
+            f"""
+            <div class="stat-card">
+                <div class="stat-label">Annualized Return</div>
+                <div class="stat-value">{res_aga['Annual Return'] * 100:.2f}%</div>
+                <span class="stat-delta-positive">+{(res_aga['Annual Return'] - res_sga['Annual Return']) * 100:.2f}% vs SGA</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
-    with kpi_col4:
-        st.metric(
-            label="AGA Max Drawdown",
-            value=f"{res_aga['Max Drawdown'] * 100:.2f}%",
-            delta=f"{abs(res_idx['Max Drawdown'] - res_aga['Max Drawdown']) * 100:.2f}% less drawdown",
+
+    with col_c4:
+        st.markdown(
+            f"""
+            <div class="stat-card">
+                <div class="stat-label">Maximum Drawdown</div>
+                <div class="stat-value">{res_aga['Max Drawdown'] * 100:.2f}%</div>
+                <span class="stat-delta-positive">{abs(res_idx['Max Drawdown'] - res_aga['Max Drawdown']) * 100:.2f}% Less Loss</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
-    with kpi_col5:
+
+    with col_c5:
         final_aga_rp = capital_idr * res_aga["Final Portfolio Value"]
-        st.metric(
-            label="Final Portfolio Value",
-            value=format_idr(final_aga_rp),
-            delta=format_idr(final_aga_rp - (capital_idr * res_idx["Final Portfolio Value"])),
+        st.markdown(
+            f"""
+            <div class="stat-card">
+                <div class="stat-label">Terminal Portfolio Value</div>
+                <div class="stat-value">{format_idr(final_aga_rp)}</div>
+                <span class="stat-delta-neutral">Base: {format_idr(capital_idr)}</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
 
-    # Interactive Cumulative Equity & Drawdown Chart
-    st.markdown("#### 📈 Cumulative Portfolio Wealth & Drawdown Dynamics")
-
+    # Plotly Cumulative Equity and Drawdown
     fig_curves = make_subplots(
         rows=2,
         cols=1,
         shared_xaxes=True,
         vertical_spacing=0.08,
-        subplot_titles=("Cumulative Portfolio Value (IDR)", "Drawdown Trajectory (%)"),
-        row_heights=[0.65, 0.35],
+        subplot_titles=("Cumulative Portfolio Trajectory (IDR)", "Peak-to-Trough Drawdown (%)"),
+        row_heights=[0.68, 0.32],
     )
 
     strategies = [
-        ("Adaptive GA (AGA)", res_aga, "#1f77b4", "solid", 3),
-        ("Standard GA (SGA)", res_sga, "#2ca02c", "dash", 2),
-        ("Equal Weight (1/N)", res_eq, "#7f7f7f", "dot", 2),
-        ("IDX30 Benchmark", res_idx, "#d62728", "solid", 2),
+        ("Adaptive GA (AGA, 4×)", res_aga, "#1e40af", "solid", 2.5),
+        ("Standard GA (SGA, 4×)", res_sga, "#059669", "dash", 1.8),
+        ("Equal Weight (1/N)", res_eq, "#64748b", "dot", 1.5),
+        ("IDX30 Market Benchmark", res_idx, "#dc2626", "solid", 1.8),
     ]
 
     for label, res, color, dash, width in strategies:
@@ -298,7 +466,7 @@ with tab1:
                 mode="lines",
                 name=label,
                 line=dict(color=color, width=width, dash=dash),
-                hovertemplate="%{x|%d %b %Y}<br>Value: Rp %{y:,.0f}<extra>" + label + "</extra>",
+                hovertemplate="%{x|%d %b %Y}<br>Portfolio: Rp %{y:,.0f}<extra>" + label + "</extra>",
             ),
             row=1,
             col=1,
@@ -309,7 +477,7 @@ with tab1:
                 x=drawdown_series.index,
                 y=drawdown_series.values,
                 mode="lines",
-                name=label + " DD",
+                name=label,
                 showlegend=False,
                 line=dict(color=color, width=width, dash=dash),
                 hovertemplate="%{x|%d %b %Y}<br>Drawdown: %{y:.2f}%<extra>" + label + "</extra>",
@@ -318,139 +486,177 @@ with tab1:
             col=1,
         )
 
-    # Add phase boundary vertical lines
-    rebalance_dates = ["2025-05-02", "2025-08-01", "2025-11-03"]
-    for r_date in rebalance_dates:
-        fig_curves.add_vline(x=r_date, line_width=1, line_dash="dash", line_color="gray", opacity=0.7)
+    # Phase boundary vertical lines
+    rebalance_dates = [
+        ("2025-05-02", "Rebalance: Phase 2"),
+        ("2025-08-01", "Rebalance: Phase 3"),
+        ("2025-11-03", "Rebalance: Phase 4"),
+    ]
+    for r_date, r_label in rebalance_dates:
+        fig_curves.add_vline(
+            x=r_date,
+            line_width=1,
+            line_dash="dash",
+            line_color="#94a3b8",
+            annotation_text=r_label,
+            annotation_position="top left",
+            annotation_font=dict(size=9, color="#64748b", family="JetBrains Mono, monospace"),
+        )
 
     fig_curves.update_layout(
-        height=620,
+        height=600,
         hovermode="x unified",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        margin=dict(l=20, r=20, t=40, b=20),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=10)),
+        **PLOTLY_THEME,
     )
-    fig_curves.update_yaxes(title_text="Portfolio Value (Rp)", row=1, col=1)
+    fig_curves.update_yaxes(title_text="Portfolio Value (IDR)", row=1, col=1)
     fig_curves.update_yaxes(title_text="Drawdown (%)", row=2, col=1)
 
     st.plotly_chart(fig_curves, use_container_width=True)
 
-    # Summary Performance Table
-    st.markdown("#### 📋 Performance Summary Across Strategies")
+    # Comparative Performance Table
+    st.markdown("#### Performance Metrics Summary")
     summary_data = [
         {
             "Strategy": label,
             "Total Return (%)": f"{res['Total Return'] * 100:.2f}%",
-            "Annual Return (%)": f"{res['Annual Return'] * 100:.2f}%",
-            "Annual Volatility (%)": f"{res['Annual Volatility'] * 100:.2f}%",
+            "Annualized Return (%)": f"{res['Annual Return'] * 100:.2f}%",
+            "Annualized Volatility (%)": f"{res['Annual Volatility'] * 100:.2f}%",
             "Sharpe Ratio": f"{res['Sharpe Ratio']:.4f}",
             "Max Drawdown (%)": f"{res['Max Drawdown'] * 100:.2f}%",
-            "Fees Paid": format_idr(res["Total Fees Paid"] * capital_idr),
-            "Final Wealth": format_idr(res["Final Portfolio Value"] * capital_idr),
+            "Total Execution Fees": format_idr(res["Total Fees Paid"] * capital_idr),
+            "Terminal Wealth": format_idr(res["Final Portfolio Value"] * capital_idr),
         }
         for label, res, _, _, _ in strategies
     ]
-    st.dataframe(pd.DataFrame(summary_data), use_container_width=True)
+    st.dataframe(pd.DataFrame(summary_data), use_container_width=True, hide_index=True)
 
-    # Phase-by-Phase Weight Allocation Explorer
-    st.markdown("#### ⚖️ Phase-by-Phase Optimal Asset Weights")
-    phase_selected = st.selectbox("Select Walk-Forward Phase:", ["All Phases Side-by-Side", "Fase 1", "Fase 2", "Fase 3", "Fase 4"])
+    # Phase-by-Phase Weight Allocation Analysis
+    st.markdown("#### Walk-Forward Asset Weights & Rebalancing Allocations")
+    col_w_sel, _ = st.columns([1, 2])
+    with col_w_sel:
+        phase_selected = st.selectbox(
+            "Evaluation Horizon:",
+            ["All Phases (Horizontal Comparison)", "Fase 1", "Fase 2", "Fase 3", "Fase 4"],
+        )
 
-    if phase_selected == "All Phases Side-by-Side":
+    if phase_selected == "All Phases (Horizontal Comparison)":
         fig_w = px.bar(
             w_aga_df.reset_index().melt(id_vars="ticker", var_name="Phase", value_name="Weight"),
             x="ticker",
             y="Weight",
             color="Phase",
             barmode="group",
-            title="AGA Optimal Asset Weights Across All 4 WFO Phases",
-            color_discrete_sequence=["#1f77b4", "#4292c6", "#6baed6", "#9ecae1"],
+            color_discrete_sequence=["#1e40af", "#3b82f6", "#60a5fa", "#93c5fd"],
         )
-        fig_w.update_layout(height=420, margin=dict(l=20, r=20, t=40, b=20))
+        fig_w.update_layout(
+            height=380,
+            xaxis_title="Constituent Stock Ticker",
+            yaxis_title="Portfolio Weight (%)",
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            **PLOTLY_THEME,
+        )
         fig_w.update_yaxes(tickformat=".1%")
         st.plotly_chart(fig_w, use_container_width=True)
     else:
         col_w1, col_w2 = st.columns([1, 1])
         with col_w1:
-            st.markdown(f"**Asset Allocation for {phase_selected} (AGA vs SGA)**")
             comp_weights = pd.DataFrame({
-                "AGA (%)": w_aga_df[phase_selected] * 100.0,
-                "SGA (%)": w_sga_df[phase_selected] * 100.0,
-                "Allocation (Rp)": w_aga_df[phase_selected] * capital_idr,
-            }).sort_values("AGA (%)", ascending=False)
+                "Ticker": w_aga_df.index,
+                "AGA Weight (%)": (w_aga_df[phase_selected] * 100.0).round(2),
+                "SGA Weight (%)": (w_sga_df[phase_selected] * 100.0).round(2),
+                "Capital Allocation": (w_aga_df[phase_selected] * capital_idr).round(0),
+            })
+
+            # Calculate Lots (1 Lot = 100 shares) based on current close price
+            comp_weights["Last Price"] = comp_weights["Ticker"].map(last_prices)
+            comp_weights["Suggested Lots"] = np.floor(
+                comp_weights["Capital Allocation"] / (comp_weights["Last Price"] * 100.0)
+            ).astype(int)
+
+            comp_weights = comp_weights.sort_values("AGA Weight (%)", ascending=False).reset_index(drop=True)
+
             st.dataframe(
                 comp_weights.style.format({
-                    "AGA (%)": "{:.2f}%",
-                    "SGA (%)": "{:.2f}%",
-                    "Allocation (Rp)": "Rp {:,.0f}",
+                    "AGA Weight (%)": "{:.2f}%",
+                    "SGA Weight (%)": "{:.2f}%",
+                    "Capital Allocation": "Rp {:,.0f}",
+                    "Last Price": "Rp {:,.0f}",
+                    "Suggested Lots": "{:,} lot",
                 }),
                 height=380,
                 use_container_width=True,
+                hide_index=True,
             )
 
         with col_w2:
-            fig_pie = px.pie(
-                comp_weights[comp_weights["AGA (%)"] > 0].reset_index(),
-                names="ticker",
-                values="AGA (%)",
-                title=f"AGA Portfolio Composition ({phase_selected})",
-                hole=0.4,
+            fig_donut = px.pie(
+                comp_weights[comp_weights["AGA Weight (%)"] > 0],
+                names="Ticker",
+                values="AGA Weight (%)",
+                hole=0.45,
+                color_discrete_sequence=px.colors.qualitative.Prism,
             )
-            fig_pie.update_layout(height=380, margin=dict(l=10, r=10, t=40, b=10))
-            st.plotly_chart(fig_pie, use_container_width=True)
+            fig_donut.update_layout(
+                height=380,
+                margin=dict(l=10, r=10, t=20, b=10),
+                legend=dict(orientation="v", y=0.5, font=dict(size=10)),
+            )
+            st.plotly_chart(fig_donut, use_container_width=True)
 
-    # Statistical Significance Gallery
-    with st.expander("🔬 Statistical Hypothesis Testing & Significance Results"):
+    # Statistical Inference & Multi-Run Stability
+    with st.expander("Inferential Hypothesis Testing & Robustness Analysis (80 Runs)"):
         st.markdown(
-            """
-            Multi-run verification comparing **Standard GA (SGA)** and **Adaptive GA (AGA)** across 10 independent runs per phase:
-            - **Normality Check:** Evaluated via **Shapiro-Wilk test** on paired differences.
-            - **Significance Test:** Automatically routed to **Paired Student's t-test** or **Wilcoxon Signed-Rank test**.
+            r"""
+            Multi-run verification comparing **Standard GA (SGA)** and **Adaptive GA (AGA)** across 10 independent random seeds per phase (80 evaluations total).
+            - **Normality Test:** Evaluated using the **Shapiro-Wilk** test on paired run differences ($\Delta = \text{Fitness}_{\text{AGA}} - \text{Fitness}_{\text{SGA}}$).
+            - **Hypothesis Test Routing:** Paired Student's t-test applied for normal differences; non-parametric Wilcoxon Signed-Rank test applied otherwise.
             """
         )
         stats_df = pd.read_csv("results/tables/statistical_significance_tests.csv")
-        st.dataframe(stats_df, use_container_width=True)
+        st.dataframe(stats_df, use_container_width=True, hide_index=True)
 
 
 # ==============================================================================
-# TAB 2: LIVE PORTFOLIO OPTIMIZER & SIMULATOR
+# TAB 2: ALGORITHM OPTIMIZATION SIMULATION
 # ==============================================================================
 with tab2:
-    st.markdown("### ⚡ Live Portfolio Optimizer & Simulation Engine")
-    st.markdown("Select stocks, tweak constraints and algorithm parameters, and run real-time evolutionary optimization.")
+    st.markdown('<div class="kicker">Evolutionary Simulation Engine</div>', unsafe_allow_html=True)
+    st.markdown("#### Real-Time Portfolio Optimization (AGA vs. SGA)")
+    st.caption("Customize constituent assets, penalty constraints, and genetic hyperparameters to run live comparative convergence.")
 
     with st.form("optimizer_form"):
         col_param1, col_param2, col_param3 = st.columns(3)
 
         with col_param1:
-            st.markdown("**1. Asset Universe Selection**")
+            st.markdown("**1. Asset Universe**")
             selected_assets = st.multiselect(
-                "Constituent Stocks:",
+                "Select Tickers:",
                 options=consistent_tickers,
-                default=consistent_tickers[:12],
-                help="Select stocks to include in the portfolio optimization universe.",
+                default=consistent_tickers[:14],
+                help="Subset of IDX30 stocks to form the portfolio optimization space.",
             )
 
         with col_param2:
-            st.markdown("**2. Investment Constraints**")
-            max_w_input = st.slider("Max Weight per Asset (%):", 10, 50, int(MAX_WEIGHT_DEFAULT * 100), 5) / 100.0
-            lambda_div_input = st.slider("Diversification Penalty (λ):", 0.0, 0.20, LAMBDA_DIV_DEFAULT, 0.01)
+            st.markdown("**2. Risk & Regularization**")
+            max_w_input = st.slider("Max Single-Asset Weight (%):", 10, 50, int(MAX_WEIGHT_DEFAULT * 100), 5) / 100.0
+            lambda_div_input = st.slider("HHI Diversification Penalty (λ):", 0.0, 0.20, LAMBDA_DIV_DEFAULT, 0.01)
 
         with col_param3:
-            st.markdown("**3. Algorithm Hyperparameters**")
-            pop_size_input = st.slider("Population Size:", 30, 300, 100, 10)
-            generations_input = st.slider("Generations:", 10, 100, 40, 5)
-            seed_input = st.number_input("Random Seed:", value=SEED, step=1)
+            st.markdown("**3. Hyperparameters**")
+            pop_size_input = st.slider("Population Size (M):", 40, 300, 100, 20)
+            generations_input = st.slider("Generations (G):", 15, 100, 40, 5)
+            seed_input = st.number_input("RNG Seed:", value=SEED, step=1)
 
-        btn_run = st.form_submit_button("🚀 Run Live Optimization (AGA vs. SGA)", use_container_width=True)
+        btn_run = st.form_submit_button("Execute Optimization Simulation", use_container_width=True)
 
     if btn_run:
         if len(selected_assets) < 3:
-            st.error("Please select at least 3 stocks to form a diversified portfolio.")
+            st.warning("A minimum of 3 assets is required to construct a valid investment portfolio.")
         else:
-            with st.spinner("Executing Adaptive Genetic Algorithm & Standard GA in real time..."):
-                start_exec = time.time()
+            with st.spinner("Executing evolutionary search..."):
+                t_start = time.time()
 
-                # Filter dataset
                 df_sub = df_selected[df_selected["ticker"].isin(selected_assets)]
                 df_train_sub, df_val_sub, df_test_sub = src.split_dataset(df_sub)
                 mu_sub, cov_sub, _ = src.compute_statistics(df_train_sub)
@@ -458,8 +664,8 @@ with tab2:
                 progress_bar = st.progress(0)
                 status_text = st.empty()
 
-                status_text.text("Running Standard Genetic Algorithm (SGA)...")
-                progress_bar.progress(30)
+                status_text.text("Evaluating Standard Genetic Algorithm (SGA)...")
+                progress_bar.progress(35)
                 res_live_sga = src.genetic_algorithm(
                     mu=mu_sub.values,
                     cov_matrix=cov_sub.values,
@@ -470,8 +676,8 @@ with tab2:
                     seed=seed_input,
                 )
 
-                status_text.text("Running Adaptive Genetic Algorithm (AGA)...")
-                progress_bar.progress(70)
+                status_text.text("Evaluating Adaptive Genetic Algorithm (AGA)...")
+                progress_bar.progress(75)
                 res_live_aga = src.adaptive_genetic_algorithm(
                     mu=mu_sub.values,
                     cov_matrix=cov_sub.values,
@@ -483,14 +689,15 @@ with tab2:
                 )
 
                 progress_bar.progress(100)
-                status_text.text(f"Optimization completed in {time.time() - start_exec:.2f} seconds!")
-                time.sleep(0.5)
+                elapsed = time.time() - t_start
+                status_text.text(f"Simulation completed in {elapsed:.2f} seconds.")
+                time.sleep(0.4)
                 progress_bar.empty()
                 status_text.empty()
 
-                st.success("Optimization and simulation executed successfully!")
+                st.success(f"Evolutionary optimization finished ({elapsed:.2f}s elapsed).")
 
-                # Live Metric Comparison
+                # Metrics Row
                 col_m1, col_m2, col_m3, col_m4 = st.columns(4)
                 with col_m1:
                     st.metric("AGA Best Fitness", f"{res_live_aga['best_fitness']:.5f}")
@@ -501,59 +708,73 @@ with tab2:
                 with col_m4:
                     st.metric("SGA In-Sample Sharpe", f"{res_live_sga['best_sharpe']:.4f}")
 
-                # Live Evolutionary Plots
+                # Evolutionary Curves
                 col_p1, col_p2 = st.columns(2)
                 with col_p1:
                     fig_conv = go.Figure()
-                    fig_conv.add_trace(go.Scatter(y=res_live_sga["history_best"], mode="lines", name="Standard GA (SGA)", line=dict(color="#2ca02c", dash="dash")))
-                    fig_conv.add_trace(go.Scatter(y=res_live_aga["history_best"], mode="lines", name="Adaptive GA (AGA)", line=dict(color="#1f77b4", width=2.5)))
-                    fig_conv.update_layout(title="Objective Fitness Convergence", xaxis_title="Generation", yaxis_title="Fitness (Lower is Better)", height=380, margin=dict(l=10, r=10, t=40, b=10))
+                    fig_conv.add_trace(go.Scatter(y=res_live_sga["history_best"], mode="lines", name="Standard GA (SGA)", line=dict(color="#059669", dash="dash", width=1.8)))
+                    fig_conv.add_trace(go.Scatter(y=res_live_aga["history_best"], mode="lines", name="Adaptive GA (AGA)", line=dict(color="#1e40af", width=2.5)))
+                    fig_conv.update_layout(title="Objective Fitness Minimization Trajectory", xaxis_title="Generation", yaxis_title="Fitness Score", height=350, **PLOTLY_THEME)
                     st.plotly_chart(fig_conv, use_container_width=True)
 
                 with col_p2:
                     fig_div = go.Figure()
-                    fig_div.add_trace(go.Scatter(y=res_live_sga["history_diversity"], mode="lines", name="SGA Diversity", line=dict(color="#2ca02c", dash="dash")))
-                    fig_div.add_trace(go.Scatter(y=res_live_aga["history_diversity"], mode="lines", name="AGA Diversity", line=dict(color="#1f77b4", width=2.5)))
-                    fig_div.update_layout(title="Population Diversity Trajectory", xaxis_title="Generation", yaxis_title="Diversity (Mean Std)", height=380, margin=dict(l=10, r=10, t=40, b=10))
+                    fig_div.add_trace(go.Scatter(y=res_live_sga["history_diversity"], mode="lines", name="Standard GA Diversity", line=dict(color="#059669", dash="dash", width=1.8)))
+                    fig_div.add_trace(go.Scatter(y=res_live_aga["history_diversity"], mode="lines", name="Adaptive GA Diversity", line=dict(color="#1e40af", width=2.5)))
+                    fig_div.update_layout(title="Population Chromosome Diversity", xaxis_title="Generation", yaxis_title="Mean Gene Standard Deviation", height=350, **PLOTLY_THEME)
                     st.plotly_chart(fig_div, use_container_width=True)
 
-                # Live Dynamic Operators Trajectory
+                # Dynamic Operator Rates
                 fig_rates = go.Figure()
-                fig_rates.add_trace(go.Scatter(y=res_live_aga["history_pc"], mode="lines", name="Adaptive Crossover Rate (Pc)", line=dict(color="#1f77b4", width=2)))
-                fig_rates.add_trace(go.Scatter(y=res_live_aga["history_pm"], mode="lines", name="Adaptive Mutation Rate (Pm)", line=dict(color="#ff7f0e", width=2)))
-                fig_rates.update_layout(title="AGA Dynamic Operator Probability Evolution Across Generations", xaxis_title="Generation", yaxis_title="Probability", height=320, margin=dict(l=10, r=10, t=40, b=10))
+                fig_rates.add_trace(go.Scatter(y=res_live_aga["history_pc"], mode="lines", name="Adaptive Crossover Rate (Pc)", line=dict(color="#1e40af", width=2)))
+                fig_rates.add_trace(go.Scatter(y=res_live_aga["history_pm"], mode="lines", name="Adaptive Mutation Rate (Pm)", line=dict(color="#ea580c", width=2)))
+                fig_rates.update_layout(title="Dynamic Operator Probability Trajectory ($P_c$ vs. $P_m$)", xaxis_title="Generation", yaxis_title="Operator Probability", height=300, **PLOTLY_THEME)
                 st.plotly_chart(fig_rates, use_container_width=True)
 
-                # Recommended Allocation Table
-                st.markdown("#### 💰 Recommended Asset Allocation")
-                w_live_aga = res_live_aga["best_weights"]
+                # Allocation Table & Lot Sizing
+                st.markdown("#### Recommended Portfolio Allocation & Execution Sizing")
+                w_live = res_live_aga["best_weights"]
                 df_alloc = pd.DataFrame({
                     "Ticker": selected_assets,
-                    "Weight (%)": w_live_aga * 100.0,
-                    "Capital Allocation": w_live_aga * capital_idr,
-                }).sort_values("Weight (%)", ascending=False).reset_index(drop=True)
+                    "Weight (%)": (w_live * 100.0).round(2),
+                    "Capital (IDR)": (w_live * capital_idr).round(0),
+                })
+                df_alloc["Last Close"] = df_alloc["Ticker"].map(last_prices)
+                df_alloc["Execution Lots"] = np.floor(
+                    df_alloc["Capital (IDR)"] / (df_alloc["Last Close"] * 100.0)
+                ).astype(int)
+                df_alloc = df_alloc.sort_values("Weight (%)", ascending=False).reset_index(drop=True)
 
                 col_t1, col_t2 = st.columns([1, 1])
                 with col_t1:
                     st.dataframe(
                         df_alloc.style.format({
                             "Weight (%)": "{:.2f}%",
-                            "Capital Allocation": "Rp {:,.0f}",
+                            "Capital (IDR)": "Rp {:,.0f}",
+                            "Last Close": "Rp {:,.0f}",
+                            "Execution Lots": "{:,} lot",
                         }),
                         use_container_width=True,
+                        hide_index=True,
                     )
                 with col_t2:
-                    fig_alloc = px.pie(df_alloc[df_alloc["Weight (%)"] > 0.01], names="Ticker", values="Weight (%)", hole=0.35, title="Optimized Asset Weight Distribution")
-                    fig_alloc.update_layout(height=360, margin=dict(l=10, r=10, t=40, b=10))
-                    st.plotly_chart(fig_alloc, use_container_width=True)
+                    fig_bar = px.bar(
+                        df_alloc[df_alloc["Weight (%)"] > 0],
+                        x="Ticker",
+                        y="Weight (%)",
+                        title="Optimal Capital Allocation by Asset",
+                        color_discrete_sequence=["#1e40af"],
+                    )
+                    fig_bar.update_layout(height=350, **PLOTLY_THEME)
+                    st.plotly_chart(fig_bar, use_container_width=True)
 
 
 # ==============================================================================
-# TAB 3: ASSET EXPLORER & CORRELATION ANALYTICS
+# TAB 3: ASSET UNIVERSE & RISK DIAGNOSTICS
 # ==============================================================================
 with tab3:
-    st.markdown("### 📊 IDX30 Constituent Asset Analytics")
-    st.markdown("Explore return distributions, risk vs. return trade-offs, and inter-asset correlations.")
+    st.markdown('<div class="kicker">Cross-Sectional Analytics</div>', unsafe_allow_html=True)
+    st.markdown("#### IDX30 Risk-Return Characteristics & Pairwise Dependencies")
 
     df_train, _, _ = src.split_dataset(df_selected)
     mu_all, cov_all, rets_all = src.compute_statistics(df_train)
@@ -571,40 +792,38 @@ with tab3:
 
     col_a1, col_a2 = st.columns([1, 1])
     with col_a1:
-        st.markdown("#### 🎯 Risk vs. Return Profile")
+        st.markdown("##### Cross-Sectional Risk vs. Return Tradeoff")
         fig_scatter = px.scatter(
             df_assets,
             x="Annual Volatility (%)",
             y="Annual Return (%)",
             text="Ticker",
             color="Sharpe Ratio",
-            color_continuous_scale="Viridis",
-            size=np.maximum(df_assets["Sharpe Ratio"] + 1.0, 0.5),
-            title="Asset Risk vs. Return (In-Sample Training Period)",
+            color_continuous_scale="Blues",
+            size=np.maximum(df_assets["Sharpe Ratio"] + 1.0, 0.4),
         )
-        fig_scatter.update_traces(textposition="top center")
-        fig_scatter.update_layout(height=450, margin=dict(l=20, r=20, t=40, b=20))
+        fig_scatter.update_traces(textposition="top center", marker=dict(line=dict(width=1, color="#1e40af")))
+        fig_scatter.update_layout(height=420, **PLOTLY_THEME)
         st.plotly_chart(fig_scatter, use_container_width=True)
 
     with col_a2:
-        st.markdown("#### 🔗 Return Correlation Heatmap")
+        st.markdown("##### Pairwise Daily Return Correlation Matrix")
         corr_matrix = rets_all.corr()
         fig_corr = px.imshow(
             corr_matrix,
             text_auto=".2f",
             aspect="auto",
-            color_continuous_scale="RdBu_r",
+            color_continuous_scale="Blues",
             zmin=-1,
             zmax=1,
-            title="Pairwise Daily Return Correlation Matrix",
         )
-        fig_corr.update_layout(height=450, margin=dict(l=20, r=20, t=40, b=20))
+        fig_corr.update_layout(height=420, margin=dict(l=20, r=20, t=10, b=10))
         st.plotly_chart(fig_corr, use_container_width=True)
 
-    # Normalized Price Trends
-    st.markdown("#### 📉 Normalized Price Historical Trajectories (Base = 100)")
+    # Rebased Historical Equity Trajectories
+    st.markdown("##### Normalized Historical Price Evolution (Base = 100)")
     tickers_to_plot = st.multiselect(
-        "Select tickers to compare:",
+        "Select Assets to Rebase:",
         options=consistent_tickers,
         default=["BBCA", "BBRI", "BMRI", "ASII", "TLKM"],
     )
@@ -619,8 +838,14 @@ with tab3:
             x="Date",
             y="Normalized Price",
             color="Ticker",
-            title="Normalized Stock Price Evolution (Base 100)",
+            color_discrete_sequence=px.colors.qualitative.Dark24,
         )
-        fig_norm.update_layout(height=400, hovermode="x unified", margin=dict(l=20, r=20, t=40, b=20))
+        fig_norm.update_layout(
+            height=380,
+            hovermode="x unified",
+            xaxis_title="Date",
+            yaxis_title="Rebased Price Index (Base 100)",
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            **PLOTLY_THEME,
+        )
         st.plotly_chart(fig_norm, use_container_width=True)
-
