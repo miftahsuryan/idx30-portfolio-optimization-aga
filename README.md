@@ -170,26 +170,26 @@ Differences $\Delta = \text{Metric}_{\text{AGA}} - \text{Metric}_{\text{SGA}}$ w
 
 ---
 
-## 🖥️ Interactive Web Dashboard (Streamlit App)
+## 🖥️ Quantitative Research & Investment Terminal (Streamlit App)
 
-> 🚀 **Live Demo Available Online:** [https://portfolio-optimization-aga.streamlit.app](https://portfolio-optimization-aga.streamlit.app)
+> **Live Terminal Online:** [https://portfolio-optimization-aga.streamlit.app](https://portfolio-optimization-aga.streamlit.app)
 
-The repository includes a production-ready, interactive **Streamlit Web Application (`app.py`)** designed for live demonstration to recruiters, researchers, and technical evaluators:
+The repository includes a production-ready, interactive **Streamlit Web Application (`app.py`)** designed for demonstration to quantitative researchers, portfolio managers, and technical evaluators:
 
 ![Streamlit Live Dashboard Preview](results/figures/streamlit_dashboard_preview.png)
 
-### Key Features
-1. **🏆 Tab 1 — Thesis 4-Phase WFO Showcase (Instant Load):**
+### Key Capabilities
+1. **Tab 1 — Walk-Forward Performance (OOS):**
    - KPI metrics & final wealth conversion in Indonesian Rupiah (IDR).
-   - Interactive **Plotly dual-axis curves**: Daily cumulative wealth growth and peak-to-trough drawdowns across all 4 out-of-sample forward phases.
-   - Phase-by-phase asset allocation bar & donut charts comparing AGA vs. SGA.
-   - Comprehensive statistical significance table and evolutionary trajectory viewer.
-2. **⚡ Tab 2 — Live Portfolio Optimizer & Simulator:**
-   - Multi-select stock picker across IDX30 constituents.
-   - Interactive sliders for capital (Rp), maximum single-asset weight ($w_{\max}$), diversification penalty ($\lambda_{\text{div}}$), population size, and generations.
-   - Real-time evolutionary execution with live progress bar.
-   - Side-by-side interactive convergence curves, diversity trajectories, dynamic $P_c / P_m$ adaptation plots, and actionable Rupiah allocation tables.
-3. **📊 Tab 3 — IDX30 Asset Explorer & Correlation Analytics:**
+   - Interactive **Plotly dual-axis curves**: Daily cumulative wealth growth and peak-to-trough drawdowns across all 4 out-of-sample forward phases with rebalancing demarcations.
+   - Phase-by-phase asset allocation comparison (AGA vs. SGA) with actionable **IDX execution lots** (`1 Lot = 100 shares`).
+   - Comprehensive statistical hypothesis testing table (Shapiro-Wilk, Paired t-test, Wilcoxon Signed-Rank).
+2. **Tab 2 — Algorithm Optimization Simulation (Live AGA vs. SGA):**
+   - Multi-select stock picker across the 22 consistent IDX30 constituents.
+   - Interactive parameters for capital (Rp), maximum single-asset weight ($w_{\max}$), diversification penalty ($\lambda_{\text{div}}$), population size, and generations.
+   - Simultaneous evolutionary execution of AGA and SGA with real-time progress indicators.
+   - Side-by-side interactive convergence curves, population diversity trajectories, dynamic $P_c / P_m$ adaptation plots, and executable IDX lot sizing tables.
+3. **Tab 3 — Asset Universe & Risk Diagnostics:**
    - Interactive Risk vs. Return scatter plot with Sharpe ratio color gradients.
    - Pairwise daily return correlation heatmap.
    - Historical normalized stock price trajectories (Base = 100).
