@@ -17,7 +17,7 @@ Tersedia dalam dua bahasa: **English** (standar internasional) dan **Bahasa Indo
 
 ### Option A: Compact Format (3 High-Impact Bullet Points — Ideal for 1-Page Resume)
 * **Developed an end-to-end portfolio optimization framework** using an **Adaptive Genetic Algorithm (AGA)** on Indonesian Blue-Chip stocks (IDX30), dynamically adjusting crossover ($P_c$) and mutation ($P_m$) rates to prevent premature convergence.
-* **Engineered a 4-phase Walk-Forward Optimization (WFO) backtest** incorporating realistic market frictions (0.15% buy, 0.25% sell fees), outperforming the IDX30 benchmark with a **46.49% Total Return** (vs. 13.48%), a **2.1025 Sharpe Ratio** (vs. 0.3767), and a **-15.74% Max Drawdown**.
+* **Engineered a 4-phase Walk-Forward Optimization (WFO) backtest** incorporating realistic market frictions (0.15% buy, 0.25% sell fees), outperforming the IDX30 benchmark with a **46.51% Total Return** (vs. 13.48%), a **2.1036 Sharpe Ratio** (vs. 0.3767), and a **-15.74% Max Drawdown**.
 * **Statistically validated performance** across 80 independent runs using **Shapiro-Wilk normality tests**, **Paired t-tests**, and **Wilcoxon Signed-Rank tests**, demonstrating statistically significant objective fitness gains ($p < 0.001$) over Standard Genetic Algorithms across all 4 out-of-sample phases.
 
 ---
@@ -26,14 +26,14 @@ Tersedia dalam dua bahasa: **English** (standar internasional) dan **Bahasa Indo
 * **Architected a regularized Mean-Variance optimization engine** utilizing an **Adaptive Genetic Algorithm (AGA)** with Herfindahl-Hirschman Index (HHI) diversification penalties ($\lambda_{\text{div}} = 0.05$) and strict asset allocation caps ($w_i \le 20\%$) via an iterative excess-redistribution repair mechanism.
 * **Designed adaptive operator scaling ($k_1 \dots k_6$)** that tunes crossover and mutation rates based on population fitness variance, preventing local optimum stagnation and sustaining exploratory diversity across generations.
 * **Built a Walk-Forward Optimization (WFO) backtesting pipeline** across 4 temporal out-of-sample phases, evaluating portfolio rebalancing, weight drift, and transaction friction (0.15% buy / 0.25% sell fees).
-* **Achieved a 46.49% cumulative out-of-sample return** (50.59% annualized) and **2.1025 Sharpe Ratio**, outperforming Standard GA (33.90% return, 1.45 Sharpe), 1/N Equal Weight (38.51% return, 1.60 Sharpe), and the IDX30 Market Benchmark (13.48% return, 0.38 Sharpe).
+* **Achieved a 46.51% cumulative out-of-sample return** (50.61% annualized) and **2.1036 Sharpe Ratio**, outperforming Standard GA (33.90% return, 1.45 Sharpe), 1/N Equal Weight (38.51% return, 1.60 Sharpe), and the IDX30 Market Benchmark (13.48% return, 0.38 Sharpe).
 * **Conducted rigorous statistical hypothesis testing** (Shapiro-Wilk, Paired t-test, Wilcoxon Signed-Rank, and Holm-Bonferroni correction) on 80 experimental runs, confirming superior multi-objective fitness convergence ($p < 0.001$) and robust out-of-sample generalization.
-* **Deployed an interactive Streamlit & Plotly web dashboard** featuring dual-mode functionality: instant thesis WFO visual showcase and live real-time portfolio optimization simulator for user-defined capital and constraints.
+* **Deployed an institutional Quantitative Investment Terminal** using Streamlit and Plotly (Bloomberg/FactSet aesthetic), featuring 4-phase WFO equity trajectories, real-time live evolutionary simulation, and real-world Indonesia Stock Exchange (IDX) round-lot sizing calculations (`1 Lot = 100 shares`).
 
 ---
 
 ### Option C: Executive One-Liner (For Summary / Portfolio Header)
-> Built an end-to-end financial portfolio optimization engine using Adaptive Genetic Algorithms (AGA) and Walk-Forward backtesting on IDX30 constituents, achieving an out-of-sample Sharpe Ratio of **2.1025** and **46.49% Total Return** with statistically verified alpha ($p < 0.001$).
+> Built an end-to-end financial portfolio optimization engine using Adaptive Genetic Algorithms (AGA) and Walk-Forward backtesting on IDX30 constituents, achieving an out-of-sample Sharpe Ratio of **2.1036** and **46.51% Total Return** with statistically verified alpha ($p < 0.001$).
 
 ---
 
@@ -46,7 +46,7 @@ Tersedia dalam dua bahasa: **English** (standar internasional) dan **Bahasa Indo
 
 ### Opsi A: Format Ringkas (3 Poin Utama — Cocok untuk Resume 1 Halaman)
 * **Mengembangkan sistem optimasi portofolio investasi** berbasis **Adaptive Genetic Algorithm (AGA)** pada 22 saham konsisten indeks IDX30, mengadaptasi probabilitas *crossover* ($P_c$) dan mutasi ($P_m$) secara dinamis guna mengatasi konvergensi prematur.
-* **Mengimplementasikan pengujian *Walk-Forward Optimization* (WFO) 4 fase** dengan memperhitungkan biaya transaksi riil (beli 0,15%, jual 0,25%) dan *rebalancing*, menghasilkan **Total Return 46,49%** (vs. Benchmark IDX30 13,48%), **Sharpe Ratio 2,1025** (vs. 0,3767), serta **Max Drawdown terkendali di -15,74%**.
+* **Mengimplementasikan pengujian *Walk-Forward Optimization* (WFO) 4 fase** dengan memperhitungkan biaya transaksi riil (beli 0,15%, jual 0,25%) dan *rebalancing*, menghasilkan **Total Return 46,51%** (vs. Benchmark IDX30 13,48%), **Sharpe Ratio 2,1036** (vs. 0,3767), serta **Max Drawdown terkendali di -15,74%**.
 * **Melakukan validasi statistik inferensial** terhadap 80 eksperimen independen menggunakan uji normalitas **Shapiro-Wilk**, **Paired t-test**, dan **Wilcoxon Signed-Rank**, membuktikan peningkatan performa fungsi objektif yang signifikan secara statistik ($p < 0,001$) dibanding Standard GA pada seluruh fase *out-of-sample*.
 
 ---
@@ -55,9 +55,9 @@ Tersedia dalam dua bahasa: **English** (standar internasional) dan **Bahasa Indo
 * **Merancang fungsi objektif Mean-Variance teregulasi** yang mengintegrasikan penalti diversifikasi *Herfindahl-Hirschman Index* (HHI, $\lambda_{\text{div}} = 0,05$) dan batas maksimum bobot per aset ($w_i \le 20\%$) menggunakan algoritma perbaikan (*repair mechanism*) redistribusi proporsional.
 * **Menerapkan mekanisme adaptif Srinivas & Patnaik ($k_1 \dots k_6$)** untuk mengatur parameter probabilitas *crossover* dan mutasi secara otomatis sesuai sebaran fitness populasi guna menjaga keseimbangan eksplorasi dan eksploitasi.
 * **Membangun pipeline *Walk-Forward Optimization* (WFO)** 2 fase validasi (*hyperparameter tuning*) dan 4 fase pengujian *out-of-sample*, memperhitungkan efek *weight drift* dan friksi biaya transaksi riil.
-* **Mencatatkan kinerja portofolio *out-of-sample*** dengan **Total Return 46,49%** (Annual Return 50,59%) dan **Sharpe Ratio 2,1025**, melampaui Standard GA (Return 33,90%, Sharpe 1,45), *Equal Weight* (Return 38,51%, Sharpe 1,60), dan Indeks IDX30 (Return 13,48%, Sharpe 0,38).
+* **Mencatatkan kinerja portofolio *out-of-sample*** dengan **Total Return 46,51%** (Annual Return 50,61%) dan **Sharpe Ratio 2,1036**, melampaui Standard GA (Return 33,90%, Sharpe 1,45), *Equal Weight* (Return 38,51%, Sharpe 1,60), dan Indeks IDX30 (Return 13,48%, Sharpe 0,38).
 * **Menguji signifikansi statistik secara ketat** melalui uji Shapiro-Wilk, Paired t-test, Wilcoxon Signed-Rank, serta koreksi Holm-Bonferroni, membuktikan bahwa keunggulan nilai fitness konvergen AGA terhadap Standard GA valid dan signifikan ($p < 0,001$).
-* **Mendeploy aplikasi web interaktif berbasis Streamlit & Plotly** yang memfasilitasi simulasi optimasi portofolio secara real-time, visualisasi kurva *equity* interaktif, serta konversi alokasi dana ke nominal Rupiah.
+* **Mendeploy Quantitative Investment Terminal bertaraf institusional** berbasis Streamlit & Plotly (estetika FactSet/Bloomberg), dilengkapi analisis kurva *equity* 4 fase, simulasi evolusioner real-time, serta kalkulator konversi bobot ke lot saham Bursa Efek Indonesia (BEI: **1 Lot = 100 lembar**).
 
 ---
 

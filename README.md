@@ -33,12 +33,12 @@ Over the out-of-sample evaluation period (2025–2026), the **AGA Strategy (4× 
 
 | Rank | Investment Strategy | Total Return (%) | Annualized Return (%) | Annualized Volatility (%) | Sharpe Ratio | Max Drawdown (%) | Net Transaction Cost (%) | Final Portfolio Value |
 | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| 🥇 | **Adaptive Genetic Algorithm (AGA)** | **46.49%** | **50.59%** | **21.21%** | **2.1025** | **-15.74%** | 0.43% | **1.4649** |
+| 🥇 | **Adaptive Genetic Algorithm (AGA)** | **46.51%** | **50.61%** | **21.21%** | **2.1036** | **-15.74%** | 0.43% | **1.4651** |
 | 🥈 | **Equal Weight Benchmark (1/N)** | 38.51% | 41.82% | 22.44% | 1.5961 | -18.78% | 0.15% | 1.3851 |
 | 🥉 | **Standard Genetic Algorithm (SGA)** | 33.90% | 36.75% | 21.26% | 1.4467 | -17.35% | 0.50% | 1.3390 |
 | 4 | **IDX30 Market Index Benchmark** | 13.48% | 14.53% | 22.63% | 0.3767 | -17.14% | 0.38% | 1.1348 |
 
-> **Key Takeaway:** AGA delivered **+33.01% higher total return** and **+458% higher Sharpe Ratio** compared to the official IDX30 Index benchmark, while limiting maximum drawdown to **-15.74%** (the lowest among all evaluated strategies).
+> **Key Takeaway:** AGA delivered **+33.03% higher total return** and **+458% higher Sharpe Ratio** compared to the official IDX30 Index benchmark, while limiting maximum drawdown to **-15.74%** (the lowest among all evaluated strategies).
 
 ---
 
@@ -174,33 +174,64 @@ Differences $\Delta = \text{Metric}_{\text{AGA}} - \text{Metric}_{\text{SGA}}$ w
 
 > **Live Terminal Online:** [https://portfolio-optimization-aga.streamlit.app](https://portfolio-optimization-aga.streamlit.app)
 
-The repository includes a production-ready, interactive **Streamlit Web Application (`app.py`)** designed for demonstration to quantitative researchers, portfolio managers, and technical evaluators:
+The repository includes an institutional-grade, production-ready **Streamlit Quantitative Research & Investment Terminal (`app.py`)** engineered to present complex multi-phase backtest results, live metaheuristic simulations, and portfolio execution metrics in a clean, institutional interface (Bloomberg/FactSet aesthetic):
 
 ![Streamlit Live Dashboard Preview](results/figures/streamlit_dashboard_preview.png)
 
-### Key Capabilities
-1. **Tab 1 — Walk-Forward Performance (OOS):**
-   - KPI metrics & final wealth conversion in Indonesian Rupiah (IDR).
-   - Interactive **Plotly dual-axis curves**: Daily cumulative wealth growth and peak-to-trough drawdowns across all 4 out-of-sample forward phases with rebalancing demarcations.
-   - Phase-by-phase asset allocation comparison (AGA vs. SGA) with actionable **IDX execution lots** (`1 Lot = 100 shares`).
-   - Comprehensive statistical hypothesis testing table (Shapiro-Wilk, Paired t-test, Wilcoxon Signed-Rank).
-2. **Tab 2 — Algorithm Optimization Simulation (Live AGA vs. SGA):**
-   - Multi-select stock picker across the 22 consistent IDX30 constituents.
-   - Interactive parameters for capital (Rp), maximum single-asset weight ($w_{\max}$), diversification penalty ($\lambda_{\text{div}}$), population size, and generations.
-   - Simultaneous evolutionary execution of AGA and SGA with real-time progress indicators.
-   - Side-by-side interactive convergence curves, population diversity trajectories, dynamic $P_c / P_m$ adaptation plots, and executable IDX lot sizing tables.
-3. **Tab 3 — Asset Universe & Risk Diagnostics:**
-   - Interactive Risk vs. Return scatter plot with Sharpe ratio color gradients.
-   - Pairwise daily return correlation heatmap.
-   - Historical normalized stock price trajectories (Base = 100).
+### Terminal Architecture & Component Breakdown
 
-### Run Locally
+The dashboard is structured into three dedicated research tabs with an interactive execution sidebar:
+
+#### 1. Header & Institutional Metadata Badges
+- **Quant Terminal Banner:** Displays institutional research disclosures and formal framework specification.
+- **Specification Badges:**
+  - `UNIVERSE: 22 IDX30 EQUITIES` — Consistently listed blue-chip assets with full 3-year historical depth.
+  - `MODEL: MEAN-VARIANCE + HHI PENALTY` — Risk-adjusted Sharpe maximization with quadratic concentration penalization.
+  - `OPERATOR CONTROL: DYNAMIC (SRINIVAS & PATNAIK)` — Fitness-variance-driven adaptive crossover ($P_c$) and mutation ($P_m$).
+  - `VALIDATION: 4-PHASE WALK-FORWARD (2025-2026)` — Expanding window out-of-sample backtesting.
+  - `BENCHMARK: IDX30 & 1/N EQUAL WEIGHT` — Evaluated against standard market and passive allocation baselines.
+
+#### 2. Execution Environment & Market Friction Controls (Sidebar)
+- **Dynamic Capital Sizing:** User-configurable investment capital in Indonesian Rupiah (default: `Rp 100,000,000`), dynamically recalculating nominal asset allocations and trading lot requirements.
+- **Explicit Friction Disclosures:**
+  - **Acquisition Cost (Buy):** 0.15% brokerage commission.
+  - **Liquidation Cost (Sell):** 0.25% (0.15% brokerage + 0.10% PPh Final transaction tax).
+  - **Risk-Free Rate:** 6.00% p.a. (Bank Indonesia BI-Rate benchmark).
+  - **Rebalancing Horizon:** Quarterly expanding window with continuous intra-phase asset price drift and capital reinvestment.
+
+#### 3. Tab 1 — Walk-Forward Performance (OOS)
+- **High-Precision KPI Scorecards:**
+  - **Total Out-of-Sample Return:** **46.51%** (`+34.14% vs. IDX30 Index`)
+  - **Annualized Sharpe Ratio:** **2.1036** (`+1.7793 vs. IDX30 Index`)
+  - **Annualized Return:** **50.61%** (`+13.88% vs. Standard GA`)
+  - **Maximum Drawdown:** **-15.74%** (`1.40% less loss than benchmark`)
+  - **Terminal Portfolio Value:** **Rp 146.510.342** (net wealth on Rp 100M starting capital)
+- **Synchronized Plotly Dual-Axis Curves:** Continuous daily cumulative portfolio trajectory (IDR) and peak-to-trough drawdowns (%) across all 4 forward phases, featuring vertical rebalancing demarcation lines (`Rebalance: Phase 2`, `Rebalance: Phase 3`, `Rebalance: Phase 4`).
+- **Actionable IDX Lot Allocation Engine:** Converts continuous optimization weights $\mathbf{w}$ into real-world round trading lots compliant with Indonesia Stock Exchange rules (**1 Lot = 100 shares**):
+  $$\text{Lots}_i = \left\lfloor \frac{w_i \times \text{Capital}}{\text{Price}_i \times 100} \right\rfloor$$
+- **Hypothesis Testing Validation Matrix:** In-app presentation of inferential statistics (Shapiro-Wilk normality, Paired t-test, Wilcoxon Signed-Rank) confirming statistically significant outperformance ($p < 0.001$).
+
+#### 4. Tab 2 — Algorithm Optimization Simulation (Live AGA vs. SGA)
+- **Custom Universe Selector:** Multi-select stock picker allowing custom sub-baskets across the 22 IDX30 constituents.
+- **Hyperparameter & Constraint Sliders:** Real-time controls for max single-asset allocation ($w_{\max}$), HHI diversification weight ($\lambda_{\text{div}}$), population size ($M$), and generations ($G$).
+- **Live Evolutionary Execution:** Simultaneous execution of AGA and SGA with real-time progress indicators.
+- **Side-by-Side Evolutionary Diagnostics:** Interactive Plotly curves comparing objective fitness convergence, population diversity preservation, and dynamic $P_c$ / $P_m$ rate evolution across generations.
+
+#### 5. Tab 3 — Asset Universe & Risk Diagnostics
+- **Risk-Return Efficient Frontier:** Scatter plot of constituent assets (Annual Volatility vs. Annual Return), sized and colored by individual Sharpe Ratio.
+- **Correlation Heatmap:** 22 $\times$ 22 pairwise daily return correlation matrix identifying non-correlated diversification candidates.
+- **Normalized Price Trajectories:** Normalized price viewer (`Base = 100`) for historical trend comparison across custom tickers.
+
+---
+
+### Local Execution & Cloud CI/CD Deployment
+
 ```bash
+# Run locally using Streamlit
 streamlit run app.py
 ```
 
-### Streamlit Community Cloud Deployment
-The app is deployed and continuously integrated from this repository's `main` branch via [Streamlit Community Cloud](https://share.streamlit.io/). Any push to `main` automatically triggers a zero-downtime redeployment to [https://portfolio-optimization-aga.streamlit.app](https://portfolio-optimization-aga.streamlit.app).
+The terminal is deployed to [Streamlit Community Cloud](https://share.streamlit.io/) with automatic continuous integration from this repository's `main` branch. Every push to `main` automatically triggers an automated redeployment to [https://portfolio-optimization-aga.streamlit.app](https://portfolio-optimization-aga.streamlit.app).
 
 ---
 
