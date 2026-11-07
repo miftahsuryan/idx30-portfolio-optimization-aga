@@ -219,7 +219,7 @@ The repository includes an interactive **Streamlit Quantitative Research & Inves
   - **Annualized Sharpe Ratio:** **2.1025** (`+1.7258 vs. IDX30 Index`)
   - **Annualized Return:** **50.59%** (`+13.84% vs. Standard GA`)
   - **Maximum Drawdown:** **-15.74%** (`1.40% less loss than benchmark`)
-  - **Terminal Portfolio Value:** **Rp 146.491.375** (net wealth on Rp 100M starting capital)
+  - **Terminal Portfolio Value:** **Rp 146.491.368** (net wealth on Rp 100M starting capital)
 - **Synchronized Plotly Dual-Axis Curves:** Continuous daily cumulative portfolio trajectory (IDR) and peak-to-trough drawdowns (%) across all 4 forward phases.
 - **Cumulative & Isolated Phase Tables:** Displays both the 4× rebalanced cumulative WFO summary and the isolated per-phase performance table (`Fase 1` – `Fase 4`).
 - **Actionable IDX Lot Allocation Engine:** Converts optimization weights $\mathbf{w}$ into round trading lots compliant with Indonesia Stock Exchange rules (**1 Lot = 100 shares**).
