@@ -1,35 +1,47 @@
 """Configuration parameters for the IDX30 Portfolio Optimization project.
 
-Defines constants, hyperparameters, temporal splits, and transaction fee assumptions.
+Defines constants, hyperparameters, temporal splits, and transaction fee assumptions
+aligned 100% with the original undergraduate thesis (Implementasi-fix.ipynb).
 """
 
-from dataclasses import dataclass, field
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 
-# Global Random Seed
+# Global Random Seed (Cell 45)
 SEED: int = 29
 
+# Seed offset for final WFO weight generation (Cells 109-110: current_seed = run + 100)
+WFO_WEIGHT_SEED_START: int = 100
+
 # Financial and Trading Assumptions
-RISK_FREE_RATE: float = 0.06  # 6% annual risk-free rate (Bank Indonesia BI-Rate / 10Y INDOGB)
-TRADING_DAYS_PER_YEAR: int = 244  # Typical IDX trading days per year
-FEE_BUY: float = 0.0015   # 0.15% broker/exchange fee on buy transactions
-FEE_SELL: float = 0.0025  # 0.25% broker/exchange fee on sell transactions (incl. final tax)
+RISK_FREE_RATE: float = 0.06       # 6% annual risk-free rate (Bank Indonesia BI-Rate / 10Y INDOGB)
+TRADING_DAYS_VALIDATION: int = 244 # Trading days factor used in 2-phase validation tuning (Cell 81)
+TRADING_DAYS_PER_YEAR: int = 252   # Trading days factor used in out-of-sample WFO backtesting (Cells 131-132)
+FEE_BUY: float = 0.0015            # 0.15% broker/exchange fee on buy transactions
+FEE_SELL: float = 0.0025           # 0.25% broker/exchange fee on sell transactions (incl. final tax)
 
-# Portfolio Formulation Constraints
-LAMBDA_DIV_DEFAULT: float = 0.05  # Diversification penalty weight (Herfindahl-Hirschman Index)
-MAX_WEIGHT_DEFAULT: float = 0.20  # Maximum weight per individual asset (20% cap)
+# Portfolio Formulation Constraints — Initial Baseline Before Tuning (Cell 42)
+LAMBDA_DIV_INITIAL: float = 0.10   # Initial diversification penalty weight before tuning
+MAX_WEIGHT_INITIAL: float = 0.30   # Initial maximum weight cap (30%) before tuning
 
-# Tuned Hyperparameters for Standard Genetic Algorithm (SGA)
+# Portfolio Formulation Constraints — Final Tuned Parameters via Grid Search (Cells 85 & 92)
+LAMBDA_DIV_DEFAULT: float = 0.90   # Tuned diversification penalty weight (BEST_LAMBDA = 0.9)
+MAX_WEIGHT_DEFAULT: float = 0.10   # Tuned maximum weight per individual asset (BEST_MAX_WEIGHT = 0.1 / 10% cap)
+
+# Equal Function Evaluation Budget (Cell 94: 440 * 100 = 500 * 88 = 44,000 NFE)
+MAX_NFE_BUDGET: int = 44000
+
+# Tuned Hyperparameters for Standard Genetic Algorithm (SGA) (Cells 98 & 135)
 SGA_BEST_PARAMS = {
     "pop_size": 440,
     "generations": 100,
     "pc": 0.5,
     "pm": 0.9,
     "max_weight": MAX_WEIGHT_DEFAULT,
+    "lambda_div": LAMBDA_DIV_DEFAULT,
 }
 
-# Tuned Hyperparameters for Adaptive Genetic Algorithm (AGA)
+# Tuned Hyperparameters for Adaptive Genetic Algorithm (AGA) (Cells 102 & 135)
 AGA_BEST_PARAMS = {
     "pop_size": 500,
     "generations": 88,
@@ -40,51 +52,56 @@ AGA_BEST_PARAMS = {
     "k5": 0.9,
     "k6": 0.3,
     "max_weight": MAX_WEIGHT_DEFAULT,
+    "lambda_div": LAMBDA_DIV_DEFAULT,
 }
 
-# Temporal Splits for Walk-Forward Optimization (WFO)
+# Temporal Splits for Dataset Partitioning (Cell 23)
 SPLIT_DATES = {
-    "train_start": "2023-01-02",
+    "train_start": "2023-01-01",
     "train_end": "2024-07-31",
     "val_start": "2024-08-01",
-    "val_end": "2025-01-24",
-    "test_start": "2025-01-30",
+    "val_end": "2025-01-27",
+    "test_start": "2025-01-28",
     "test_end": "2026-01-26",
 }
 
-# Testing Walk-Forward 4-Phase Windows (In-Sample / Out-of-Sample)
+# Expanding-Window Walk-Forward Optimization (WFO) Retraining & Out-of-Sample Testing Phases (Cells 107 & 130)
 WFO_TEST_PHASES: List[Dict[str, str]] = [
     {
-        "phase": "Phase 1",
-        "is_start": "2023-01-02",
-        "is_end": "2025-01-24",
-        "oos_start": "2025-01-30",
-        "oos_end": "2025-04-30",
+        "phase": "Fase 1",
+        "is_start": "2023-01-01",
+        "is_end": "2025-01-27",
+        "oos_start": "2025-01-27",
+        "oos_end_exclusive": "2025-05-01",
+        "oos_label": "2025-01-30 s.d. 2025-04-30",
     },
     {
-        "phase": "Phase 2",
-        "is_start": "2023-01-02",
+        "phase": "Fase 2",
+        "is_start": "2023-01-01",
         "is_end": "2025-04-30",
-        "oos_start": "2025-05-02",
-        "oos_end": "2025-07-31",
+        "oos_start": "2025-05-01",
+        "oos_end_exclusive": "2025-08-01",
+        "oos_label": "2025-05-02 s.d. 2025-07-31",
     },
     {
-        "phase": "Phase 3",
-        "is_start": "2023-01-02",
+        "phase": "Fase 3",
+        "is_start": "2023-01-01",
         "is_end": "2025-07-31",
         "oos_start": "2025-08-01",
-        "oos_end": "2025-10-31",
+        "oos_end_exclusive": "2025-11-01",
+        "oos_label": "2025-08-01 s.d. 2025-10-31",
     },
     {
-        "phase": "Phase 4",
-        "is_start": "2023-01-02",
+        "phase": "Fase 4",
+        "is_start": "2023-01-01",
         "is_end": "2025-10-31",
-        "oos_start": "2025-11-03",
-        "oos_end": "2026-01-26",
+        "oos_start": "2025-11-01",
+        "oos_end_exclusive": None,
+        "oos_label": "2025-11-03 s.d. 2026-01-26",
     },
 ]
 
-# Official IDX30 Index Constituent Weights per Phase (Market Benchmark)
+# Official IDX30 Index Constituent Weights per Phase (Market Benchmark, Cells 126-129)
 IDX30_WEIGHT_MAPS: Dict[str, Dict[str, float]] = {
     "Fase 1": {
         'ADRO': 0.0167, 'AKRA': 0.0060, 'AMRT': 0.0354, 'ANTM': 0.0091, 'ARTO': 0.0069,
@@ -119,5 +136,3 @@ IDX30_WEIGHT_MAPS: Dict[str, Dict[str, float]] = {
         'PTBA': 0.0060, 'SMGR': 0.0059, 'TLKM': 0.1070, 'UNTR': 0.0244, 'UNVR': 0.0082
     }
 }
-
-

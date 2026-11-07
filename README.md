@@ -5,40 +5,63 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Framework: Modular](https://img.shields.io/badge/Framework-Modular%20Python%20%2B%20Streamlit-success.svg)]()
 [![Validation: Walk--Forward](https://img.shields.io/badge/Validation-Walk--Forward%20Out--of--Sample-orange.svg)]()
-[![Statistical Tests: Shapiro--Wilk%20%2B%20Wilcoxon](https://img.shields.io/badge/Hypothesis%20Testing-p%20%3C%200.001-brightgreen.svg)]()
+[![Statistical Tests: Shapiro--Wilk%20%2B%20t--test%20%2F%20Wilcoxon](https://img.shields.io/badge/Hypothesis%20Testing-p%20%3C%200.001-brightgreen.svg)]()
 
 > 🌐 **Live Interactive Web Dashboard:** [https://portfolio-optimization-aga.streamlit.app](https://portfolio-optimization-aga.streamlit.app)  
 > **Undergraduate Thesis Project (*Skripsi*)** | **Author:** Miftahullah Suryanugraha  
-> **Keywords:** Quantitative Finance, Portfolio Optimization, Adaptive Genetic Algorithm (AGA), Mean-Variance Theory, Walk-Forward Optimization, Non-Parametric Statistics, Transaction Cost Modeling.
+> **Keywords:** Quantitative Finance, Portfolio Optimization, Adaptive Genetic Algorithm (AGA), Mean-Variance Theory, Walk-Forward Optimization, Paired Statistical Validation, Transaction Cost Modeling.
 
 ---
 
 ## 📌 Executive Summary
 
-Modern portfolio optimization often struggles with **non-convex constraints** (cardinality limits, upper-bound allocation caps) and **dynamic market regimes**. Standard Genetic Algorithms (SGA) with static operators frequently suffer from **premature convergence** into suboptimal local optima or excessive gene disruption during late-stage exploitation.
+Modern portfolio optimization often struggles with **non-convex constraints** (upper-bound allocation caps, concentration penalties) and **dynamic market regimes**. Standard Genetic Algorithms (SGA) with static operators frequently suffer from **premature convergence** into suboptimal local optima or excessive gene disruption during late-stage exploitation.
 
-This project introduces an end-to-end quantitative framework applying an **Adaptive Genetic Algorithm (AGA)** to dynamically optimize portfolio weights across constituent stocks of the **IDX30 Index** (Indonesia Stock Exchange). 
+This project implements an end-to-end quantitative framework applying an **Adaptive Genetic Algorithm (AGA)** to dynamically optimize portfolio weights across $N = 22$ consistently listed constituent stocks of the **IDX30 Index** (Indonesia Stock Exchange).
 
 ### Key Innovations & Highlights
-1. **Dynamic Evolutionary Operators:** Automatically adapts crossover ($P_c$) and mutation ($P_m$) probabilities per individual based on population fitness variance, preserving diversity in early generations and accelerating convergence during late stages.
-2. **Regularized Multi-Objective Formulation:** Maximizes the Sharpe Ratio while penalizing concentration risk via the **Herfindahl-Hirschman Index (HHI)** ($\lambda_{\text{div}} = 0.05$) under strict single-asset weight caps ($w_i \le 20\%$) using an iterative excess-redistribution repair mechanism.
-3. **Realistic Walk-Forward Backtesting (WFO):** Evaluated over **4 out-of-sample forward phases** with continuous price drift, periodic rebalancing, and realistic **asymmetric transaction costs** (0.15% buy fee, 0.25% sell fee + tax).
-4. **Rigorous Statistical Verification:** Validated across **80 independent experimental runs** (10 runs $\times$ 4 phases $\times$ 2 algorithms) using **Shapiro-Wilk normality tests**, **Paired Student's t-tests**, **Wilcoxon Signed-Rank tests**, exact sign-flip tests, and bootstrap confidence intervals.
+1. **Dynamic Evolutionary Operators:** Automatically adapts crossover ($P_c$) and mutation ($P_m$) probabilities per individual based on population fitness distribution, preserving diversity in early generations and accelerating convergence during late stages.
+2. **Regularized Mean-Variance Objective Function:** Maximizes the daily Sharpe Ratio while penalizing concentration risk via the **Herfindahl-Hirschman Index (HHI)** ($\lambda_{\text{div}} = 0.90$, tuned via 2-phase WFO Grid Search from initial $\lambda_{\text{div}} = 0.10$) under single-asset weight caps ($w_{\max} = 10\%$, tuned from initial $30\%$) and an iterative proportional excess-redistribution repair operator (`max_iters = 15`).
+3. **Realistic Walk-Forward Backtesting (WFO):** Evaluated over **4 expanding-window out-of-sample phases** (January 2025 – January 2026, 235 trading days) both in **isolated per-phase backtests** and a **continuous 4× rebalanced cumulative backtest** incorporating intra-phase price drift and realistic **asymmetric transaction costs** (0.15% buy fee, 0.25% sell fee + tax).
+4. **Extended Multi-Run Statistical Evaluation:** Evaluates stochastic optimization stability across **80 paired experimental runs** (4 phases $\times$ 10 paired seeds $\times$ 2 algorithms with shared initial populations under an equal $44,000$ NFE budget) using a two-stage pipeline: **Shapiro-Wilk normality tests** on paired differences followed by **Paired Student's t-tests** (parametric) or **Wilcoxon Signed-Rank tests** (non-parametric).
 
 ---
 
 ## 🏆 Key Performance Results (Out-of-Sample Walk-Forward Backtest)
 
-Over the out-of-sample evaluation period (2025–2026), the **AGA Strategy (4× Rebalanced)** achieved superior risk-adjusted returns across all benchmarks:
+### 1. Cumulative Walk-Forward Performance (4× Rebalanced, Jan 2025 – Jan 2026)
+Over the full out-of-sample evaluation horizon (`2025-01-30` to `2026-01-26`), the **AGA Strategy (4× Rebalanced)** achieved the highest risk-adjusted performance across all strategies:
 
 | Rank | Investment Strategy | Total Return (%) | Annualized Return (%) | Annualized Volatility (%) | Sharpe Ratio | Max Drawdown (%) | Net Transaction Cost (%) | Final Portfolio Value |
 | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| 🥇 | **Adaptive Genetic Algorithm (AGA)** | **46.51%** | **50.61%** | **21.21%** | **2.1036** | **-15.74%** | 0.43% | **1.4651** |
-| 🥈 | **Equal Weight Benchmark (1/N)** | 38.51% | 41.82% | 22.44% | 1.5961 | -18.78% | 0.15% | 1.3851 |
-| 🥉 | **Standard Genetic Algorithm (SGA)** | 33.90% | 36.75% | 21.26% | 1.4467 | -17.35% | 0.50% | 1.3390 |
-| 4 | **IDX30 Market Index Benchmark** | 13.48% | 14.53% | 22.63% | 0.3767 | -17.14% | 0.38% | 1.1348 |
+| 🥇 | **Adaptive Genetic Algorithm (AGA, 4× Rebalanced)** | **46.4914%** | **50.5937%** | **21.2094%** | **2.1025** | **-15.7424%** | 0.4291% | **1.4649** |
+| 🥈 | **Equal Weight Benchmark (1/N Buy & Hold)** | 38.5142% | 41.8176% | 22.4410% | 1.5961 | -18.7795% | 0.1500% | 1.3851 |
+| 🥉 | **Standard Genetic Algorithm (SGA, 4× Rebalanced)** | 33.8970% | 36.7545% | 21.2583% | 1.4467 | -17.3522% | 0.4979% | 1.3390 |
+| 4 | **IDX30 Market Index Benchmark (4× Rebalanced)** | 13.4829% | 14.5260% | 22.6332% | 0.3767 | -17.1428% | 0.3775% | 1.1348 |
 
-> **Key Takeaway:** AGA delivered **+33.03% higher total return** and **+458% higher Sharpe Ratio** compared to the official IDX30 Index benchmark, while limiting maximum drawdown to **-15.74%** (the lowest among all evaluated strategies).
+> **Key Takeaway:** AGA delivered **+33.01% higher total return** (`46.49%` vs. `13.48%`) and **+458% higher Sharpe Ratio** (`2.1025` vs. `0.3767`) compared to the official IDX30 Index benchmark, while limiting maximum drawdown to **-15.74%** (the lowest among all evaluated strategies).
+
+### 2. Isolated Per-Phase Walk-Forward Performance (Fase 1 – Fase 4)
+Performance of each individual 3-month out-of-sample test window (each initialized with `0.15%` entry cost and ranked by Sharpe Ratio):
+
+| Phase | Rank | Strategy | Total Return (%) | Annual Return (%) | Annual Volatility (%) | Sharpe Ratio | Max Drawdown (%) | Transaction Cost (%) |
+| :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Fase 1** *(Feb–Apr 2025)* | 1 | **AGA (Fase 1)** | **-1.5474%** | **-6.6621%** | **32.6149%** | **-0.3882** | **-15.7424%** | 0.15% |
+| Fase 1 | 2 | Equal Weight (Fase 1) | -2.4597% | -10.4259% | 35.6571% | -0.4607 | -18.7795% | 0.15% |
+| Fase 1 | 3 | IDX30 (Fase 1) | -4.7369% | -19.3088% | 36.1163% | -0.7008 | -17.1428% | 0.15% |
+| Fase 1 | 4 | SGA (Fase 1) | -5.0989% | -20.6559% | 33.1101% | -0.8051 | -17.3522% | 0.15% |
+| **Fase 2** *(May–Jul 2025)* | 1 | **AGA (Fase 2)** | **25.8246%** | **171.3091%** | **17.7922%** | **9.2911** | **-5.6535%** | 0.15% |
+| Fase 2 | 2 | SGA (Fase 2) | 22.5366% | 141.8243% | 17.8748% | 7.5987 | -6.2541% | 0.15% |
+| Fase 2 | 3 | Equal Weight (Fase 2) | 19.9154% | 120.1397% | 17.5609% | 6.4997 | -6.6488% | 0.15% |
+| Fase 2 | 4 | IDX30 (Fase 2) | 6.0985% | 29.3308% | 16.3216% | 1.4294 | -7.3740% | 0.15% |
+| **Fase 3** *(Aug–Oct 2025)* | 1 | **AGA (Fase 3)** | **8.2338%** | **36.5537%** | **16.2624%** | **1.8788** | **-3.8129%** | 0.15% |
+| Fase 3 | 2 | Equal Weight (Fase 3) | 7.8951% | 34.8788% | 15.7500% | 1.8336 | -3.7337% | 0.15% |
+| Fase 3 | 3 | IDX30 (Fase 3) | 7.7113% | 33.9764% | 19.0369% | 1.4696 | -6.7133% | 0.15% |
+| Fase 3 | 4 | SGA (Fase 3) | 3.5376% | 14.6698% | 15.9206% | 0.5446 | -5.1580% | 0.15% |
+| **Fase 4** *(Nov 2025–Jan 2026)* | 1 | **SGA (Fase 4)** | **11.0509%** | **60.2692%** | **12.6101%** | **4.3036** | **-2.4225%** | 0.15% |
+| Fase 4 | 2 | Equal Weight (Fase 4) | 8.9500% | 47.0697% | 12.5986% | 3.2599 | -2.9339% | 0.15% |
+| Fase 4 | 3 | AGA (Fase 4) | 9.0204% | 47.4976% | 13.2826% | 3.1242 | -2.3100% | 0.15% |
+| Fase 4 | 4 | IDX30 (Fase 4) | 4.0090% | 19.3493% | 12.1106% | 1.1023 | -2.8113% | 0.15% |
 
 ---
 
@@ -49,26 +72,21 @@ Comparison of portfolio wealth growth and peak-to-trough drawdowns across the 4 
 
 ![Cumulative Equity Curve and Drawdown](results/figures/wfo_cumulative_equity_drawdown.png)
 
-### 2. Comprehensive Metric Comparison
-Grouped comparison across Total Return, Annual Return, Annual Volatility, Sharpe Ratio, Max Drawdown, and Transaction Costs:
-
-![Comprehensive Performance Evaluation](results/figures/wfo_comparative_metrics_bar.png)
-
-### 3. Evolutionary Dynamics: SGA vs. AGA
+### 2. Evolutionary Dynamics: SGA vs. AGA
 AGA demonstrates faster convergence to superior objective values while sustaining healthier population diversity:
 
 | Best Fitness Convergence Trajectory | Population Diversity Trajectory |
 | :---: | :---: |
 | ![Convergence Trajectory](results/figures/convergence_sga_vs_aga.png) | ![Diversity Trajectory](results/figures/diversity_sga_vs_aga.png) |
 
-### 4. Dynamic Operator Rate Adaptation ($P_c$ and $P_m$)
+### 3. Dynamic Operator Rate Adaptation ($P_c$ and $P_m$)
 Evolution of adaptive crossover probability ($P_c$) and mutation probability ($P_m$) across generations:
 
 | Adaptive Crossover Rate ($P_c$) | Adaptive Mutation Rate ($P_m$) |
 | :---: | :---: |
 | ![Adaptive Pc Trajectory](results/figures/adaptive_pc_trajectory.png) | ![Adaptive Pm Trajectory](results/figures/adaptive_pm_trajectory.png) |
 
-### 5. Out-of-Sample Dynamic Asset Allocation Across 4 Phases
+### 4. Out-of-Sample Dynamic Asset Allocation Across 4 Phases
 Evolution of optimized asset weights across rebalancing horizons:
 
 ![AGA Weights Allocation Across 4 Phases](results/figures/weights_allocation_aga_4phases.png)
@@ -79,59 +97,67 @@ Evolution of optimized asset weights across rebalancing horizons:
 
 ### 1. Mean-Variance Portfolio Framework
 For an investment universe of $N = 22$ consistent assets with daily expected return vector $\boldsymbol{\mu} \in \mathbb{R}^N$ and covariance matrix $\boldsymbol{\Sigma} \in \mathbb{R}^{N \times N}$, portfolio expected return and volatility are defined as:
-$$\mathbb{E}[R_p] = \mathbf{w}^T \boldsymbol{\mu}, \quad \sigma_p = \sqrt{\mathbf{w}^T \boldsymbol{\Sigma} \mathbf{w} + \epsilon}$$
+$$E = \mathbf{w}^T \boldsymbol{\mu}, \quad \sigma = \sqrt{\mathbf{w}^T \boldsymbol{\Sigma} \mathbf{w} + 10^{-6}}$$
 
-### 2. Multi-Objective Minimization Fitness Function
-To prevent extreme asset concentration and enforce diversification, we penalize the **Herfindahl-Hirschman Index (HHI)**:
-$$\min_{\mathbf{w}} \mathcal{F}(\mathbf{w}) = -\left( \frac{\mathbf{w}^T \boldsymbol{\mu}}{\sqrt{\mathbf{w}^T \boldsymbol{\Sigma} \mathbf{w} + \epsilon}} \right) + \lambda_{\text{div}} \sum_{i=1}^N w_i^2 + \gamma \sum_{i=1}^N \max(0, w_i - w_{\max})^2$$
+### 2. Regularized Minimization Fitness Function
+To prevent asset over-concentration and enforce diversification, the objective function minimizes the negative Sharpe ratio plus a **Herfindahl-Hirschman Index (HHI)** diversification penalty and a quadratic upper-bound penalty:
+$$\min_{\mathbf{w}} \mathcal{F}(\mathbf{w}) = -\left( \frac{\mathbf{w}^T \boldsymbol{\mu}}{\sqrt{\mathbf{w}^T \boldsymbol{\Sigma} \mathbf{w} + 10^{-6}}} \right) + \lambda_{\text{div}} \sum_{i=1}^N w_i^2 + 1000 \sum_{i=1}^N \max(0, w_i - w_{\max})^2$$
 
-Where:
-- $\lambda_{\text{div}} = 0.05$ (tuned diversification penalty parameter)
-- $w_{\max} = 0.20$ (maximum 20% allocation per asset)
-- $\gamma = 1000.0$ (penalty multiplier for constraint violations)
+Where (after 2-phase WFO Grid Search tuning on the validation set):
+- $\lambda_{\text{div}} = 0.90$ (tuned diversification penalty weight; initial baseline $= 0.10$)
+- $w_{\max} = 0.10$ (tuned maximum 10% allocation cap per asset; initial baseline $= 0.30$)
+- Budget & long-only constraints: $\sum_{i=1}^N w_i = 1, \; w_i \ge 0$, enforced via iterative proportional excess redistribution (`repair_weights`, `max_iters = 15`).
 
 ### 3. Adaptive Genetic Algorithm Operator Formulations
 Instead of static operator rates, AGA calculates individual crossover and mutation probabilities relative to the population's fitness distribution:
 
-$$\text{Let } f_c = \min(f_1, f_2), \quad f_{\text{avg}} = \frac{1}{M}\sum_{i=1}^M f_i, \quad f_{\min} = \min_{i} f_i$$
+$$\text{Let } f_c = \min(f_1, f_2), \quad f_{\text{ind}} = \frac{f_1 + f_2}{2}, \quad f_{\text{avg}} = \frac{1}{M}\sum_{i=1}^M f_i, \quad f_{\min} = \min_{i} f_i$$
 
 **Adaptive Crossover Probability ($P_c$):**
 $$P_c = \begin{cases} 
-k_1 - \frac{(k_1 - k_3)(f_{\text{avg}} - f_c)}{f_{\text{avg}} - f_{\min}}, & \text{if } f_c \le f_{\text{avg}} \\
+\max\!\left(k_1 - \frac{(k_1 - k_3)(f_{\text{avg}} - f_c)}{f_{\text{avg}} - f_{\min}}, \; k_3\right), & \text{if } f_c \le f_{\text{avg}} \\
 k_2, & \text{if } f_c > f_{\text{avg}}
 \end{cases}$$
 
 **Adaptive Mutation Probability ($P_m$):**
 $$P_m = \begin{cases} 
-k_4 - \frac{(k_4 - k_6)(f_{\text{avg}} - f_i)}{f_{\text{avg}} - f_{\min}}, & \text{if } f_i \le f_{\text{avg}} \\
-k_5, & \text{if } f_i > f_{\text{avg}}
+\max\!\left(k_4 - \frac{(k_4 - k_6)(f_{\text{avg}} - f_{\text{ind}})}{f_{\text{avg}} - f_{\min}}, \; k_6\right), & \text{if } f_{\text{ind}} \le f_{\text{avg}} \\
+k_5, & \text{if } f_{\text{ind}} > f_{\text{avg}}
 \end{cases}$$
 
-**Tuned Hyperparameters:**
-- $k_1 = 0.9, \; k_2 = 0.9, \; k_3 = 0.1$
-- $k_4 = 0.9, \; k_5 = 0.9, \; k_6 = 0.3$
-- Population Size: $M = 500$, Generations: $G = 88$
+**Tuned Hyperparameters (Equal $44,000$ NFE Budget):**
+- **SGA:** Population $M = 440$, Generations $G = 100$, Fixed $P_c = 0.5, \; P_m = 0.9$
+- **AGA:** Population $M = 500$, Generations $G = 88$, Adaptive scaling $k_1 = 0.9, \; k_2 = 0.9, \; k_3 = 0.1, \; k_4 = 0.9, \; k_5 = 0.9, \; k_6 = 0.3$
 
 ---
 
-## 🔬 Statistical Hypothesis Testing & Significance
+## 🔬 Extended Multi-Run Statistical Evaluation
 
-To ensure that performance advantages were not random artifacts of stochastic initialization, SGA and AGA were evaluated across **10 independent seeded runs in each of the 4 Walk-Forward phases** (80 runs total).
+> **Methodological Context:** Because SGA and AGA are stochastic population-based metaheuristics whose trajectories depend on random initialization and genetic operators, an extended statistical evaluation is performed to test whether AGA's optimization advantage is statistically consistent rather than an artifact of a single random seed.
 
-Differences $\Delta = \text{Metric}_{\text{AGA}} - \text{Metric}_{\text{SGA}}$ were evaluated:
-1. **Normality Check:** Shapiro-Wilk test on differences $\Delta$.
-2. **Hypothesis Test Routing:** If $\Delta \sim \mathcal{N}$, two-sided **Paired Student's t-test** is applied; otherwise, **Wilcoxon Signed-Rank test** is applied.
+### Experimental Design & Two-Stage Testing Protocol
+1. **Paired Multi-Start Design ($4 \text{ Phases} \times 10 \text{ Runs} \times 2 \text{ Algorithms} = 80 \text{ Runs}$):**
+   - For each retraining phase (`Fase 1` to `Fase 4`) and each run $r \in \{1, \dots, 10\}$ (`seed_run = 29 + r - 1`), a **shared initial population (`shared_population`)** is generated so that both SGA and AGA begin from identical starting chromosomes under the exact same $44,000$ function evaluation budget.
+   - This produces $n = 10$ strictly **paired observations** $(X_{\text{SGA}, r}, X_{\text{AGA}, r})$ per phase for three metrics: **Objective Fitness** (minimization), **In-Sample Daily Sharpe Ratio** (maximization), and **Computation Runtime (s)**.
+2. **Stage 1 — Normality Check on Paired Differences:**
+   - Compute paired differences $d_r = X_{\text{AGA}, r} - X_{\text{SGA}, r}$ for $r = 1, \dots, 10$.
+   - Apply the **Shapiro-Wilk normality test** (`scipy.stats.shapiro`) at significance threshold $\alpha = 0.05$, selected for its superior statistical power on small sample sizes ($n = 10$).
+3. **Stage 2 — Conditional Parametric / Non-Parametric Hypothesis Test:**
+   - If $p_{\text{Shapiro}} > 0.05$ (**Normal**): apply the two-sided **Paired Student's t-test** (`scipy.stats.ttest_rel(aga, sga)`).
+   - If $p_{\text{Shapiro}} \le 0.05$ (**Non-Normal**): apply the two-sided **Wilcoxon Signed-Rank test** (`scipy.stats.wilcoxon(aga, sga)`).
 
-| Phase | Metric Tested | Mean SGA $\pm$ SD | Mean AGA $\pm$ SD | Normality Test | $p$-value (Normality) | Statistical Test | Test Statistic | $p$-value | Conclusion ($\alpha=0.05$) |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Phase 1** | Fitness (Objective) | $0.0168 \pm 0.0033$ | **$0.0111 \pm 0.0009$** | Shapiro-Wilk | 0.7066 | Paired t-test | $t = -6.282$ | **$p = 0.00014$** | Statistically Significant |
-| **Phase 2** | Fitness (Objective) | $0.0283 \pm 0.0017$ | **$0.0222 \pm 0.0006$** | Shapiro-Wilk | 0.5009 | Paired t-test | $t = -9.456$ | **$p < 0.00001$** | Statistically Significant |
-| **Phase 3** | Fitness (Objective) | $0.0049 \pm 0.0025$ | **$-0.0008 \pm 0.0011$** | Shapiro-Wilk | 0.5127 | Paired t-test | $t = -8.005$ | **$p < 0.00001$** | Statistically Significant |
-| **Phase 4** | Fitness (Objective) | $-0.0020 \pm 0.0016$ | **$-0.0072 \pm 0.0009$** | Shapiro-Wilk | 0.3674 | Paired t-test | $t = -8.772$ | **$p < 0.00001$** | Statistically Significant |
-| **Phase 1** | Sharpe Ratio | $0.0410 \pm 0.0046$ | **$0.0469 \pm 0.0027$** | Shapiro-Wilk | 0.4636 | Paired t-test | $t = 3.114$ | **$p = 0.0124$** | Statistically Significant |
-| **Phase 2** | Sharpe Ratio | $0.0258 \pm 0.0067$ | **$0.0336 \pm 0.0021$** | Shapiro-Wilk | 0.0386 | Wilcoxon | $W = 0.000$ | **$p = 0.00195$** | Statistically Significant |
+| Phase | Metric Tested | Mean SGA $\pm$ SD | Mean AGA $\pm$ SD | Normality Test | $p$-value (Normality) | Distribution | Statistical Test | Statistic | $p$-value | Conclusion ($\alpha=0.05$) |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Fase 1** | Fitness (Objective) | $0.016800 \pm 0.003267$ | **$0.011102 \pm 0.000943$** | Shapiro-Wilk | 0.706612 | Normal | Paired t-test | $t = -6.2820$ | **$0.000144$** | Significant |
+| **Fase 2** | Fitness (Objective) | $0.028264 \pm 0.001703$ | **$0.022160 \pm 0.000594$** | Shapiro-Wilk | 0.500916 | Normal | Paired t-test | $t = -9.4565$ | **$0.000006$** | Significant |
+| **Fase 3** | Fitness (Objective) | $0.004860 \pm 0.002529$ | **$-0.000841 \pm 0.001058$** | Shapiro-Wilk | 0.512746 | Normal | Paired t-test | $t = -8.0051$ | **$0.000022$** | Significant |
+| **Fase 4** | Fitness (Objective) | $-0.001956 \pm 0.001619$ | **$-0.007153 \pm 0.000941$** | Shapiro-Wilk | 0.367356 | Normal | Paired t-test | $t = -8.7718$ | **$0.000011$** | Significant |
+| **Fase 1** | Sharpe Ratio (In-Sample) | $0.040993 \pm 0.004558$ | **$0.046926 \pm 0.002741$** | Shapiro-Wilk | 0.463569 | Normal | Paired t-test | $t = 3.1145$ | **$0.012429$** | Significant |
+| **Fase 2** | Sharpe Ratio (In-Sample) | $0.025845 \pm 0.006746$ | **$0.033629 \pm 0.002057$** | Shapiro-Wilk | 0.038636 | Non-Normal | Wilcoxon Signed-Rank | $W = 0.0000$ | **$0.001953$** | Significant |
+| **Fase 3** | Sharpe Ratio (In-Sample) | $0.051836 \pm 0.007653$ | **$0.055105 \pm 0.003599$** | Shapiro-Wilk | 0.317137 | Normal | Paired t-test | $t = 1.9459$ | $0.083519$ | Not Significant |
+| **Fase 4** | Sharpe Ratio (In-Sample) | $0.056923 \pm 0.006109$ | **$0.061369 \pm 0.004175$** | Shapiro-Wilk | 0.914355 | Normal | Paired t-test | $t = 1.6514$ | $0.133056$ | Not Significant |
 
-> Across all 4 phases, AGA demonstrated **statistically significant improvements in multi-objective fitness ($p < 0.001$)** with noticeably lower standard deviations, proving that dynamic parameter control substantially improves optimization stability.
+> Across all 4 phases, AGA achieved **statistically significant improvements in objective fitness ($p < 0.001$ in every phase)** with $2\times$–$3\times$ lower standard deviation across runs, confirming superior search convergence and multi-run stability under the regularized objective.
 
 ---
 
@@ -139,10 +165,10 @@ Differences $\Delta = \text{Metric}_{\text{AGA}} - \text{Metric}_{\text{SGA}}$ w
 
 ```text
 .
-├── app.py                                 # Interactive Streamlit Web Application (Dual-Mode)
+├── app.py                                 # Interactive Streamlit Web Application
 ├── LICENSE                                # MIT Open-Source License
-├── README.md                              # Main GitHub showcase documentation
-├── requirements.txt                       # Pinned Python package dependencies (incl. Streamlit & Plotly)
+├── README.md                              # Main GitHub documentation
+├── requirements.txt                       # Python package dependencies (incl. Streamlit & Plotly)
 ├── .streamlit/
 │   └── config.toml                        # Streamlit visual theme & server settings
 ├── data/
@@ -153,18 +179,18 @@ Differences $\Delta = \text{Metric}_{\text{AGA}} - \text{Metric}_{\text{SGA}}$ w
 │   └── CV_PORTFOLIO_HIGHLIGHTS.md         # Bilingual CV bullet points (English & Indonesian)
 ├── notebooks/
 │   ├── 01_data_scraping.ipynb             # Automated Yahoo Finance scraping pipeline
-│   └── 02_idx30_portfolio_optimization_aga.ipynb # Complete reproducible experimental notebook
+│   └── 02_idx30_portfolio_optimization_aga.ipynb # Complete reproducible thesis notebook
 ├── results/
-│   ├── figures/                           # 19 high-resolution publication charts (.png)
-│   └── tables/                            # Quantitative performance summaries (.csv)
-└── src/                                   # Production-grade modular Python package
+│   ├── figures/                           # High-resolution publication charts (.png)
+│   └── tables/                            # Verified quantitative performance tables (.csv)
+└── src/                                   # Modular Python package aligned with thesis
     ├── __init__.py                        # Package namespace exports
     ├── backtest.py                        # Multi-phase WFO backtest engine with transaction fees
-    ├── config.py                          # Constants, hyperparameters, and temporal splits
-    ├── data_loader.py                     # Preprocessing, filtering, and return calculations
+    ├── config.py                          # Constants, tuned hyperparameters, and temporal splits
+    ├── data_loader.py                     # Preprocessing, filtering, and WFO phase slicing
     ├── objectives.py                      # Regularized Mean-Variance fitness & weight repairs
     ├── optimizers.py                      # SGA and Adaptive Genetic Algorithm implementations
-    ├── statistics.py                      # Hypothesis tests (t-test, Wilcoxon, bootstrap, Holm)
+    ├── statistics.py                      # Shapiro-Wilk, Paired t-test, & Wilcoxon evaluation
     └── visualization.py                   # Chart generation and publication plotting routines
 ```
 
@@ -174,118 +200,59 @@ Differences $\Delta = \text{Metric}_{\text{AGA}} - \text{Metric}_{\text{SGA}}$ w
 
 > **Live Terminal Online:** [https://portfolio-optimization-aga.streamlit.app](https://portfolio-optimization-aga.streamlit.app)
 
-The repository includes an institutional-grade, production-ready **Streamlit Quantitative Research & Investment Terminal (`app.py`)** engineered to present complex multi-phase backtest results, live metaheuristic simulations, and portfolio execution metrics in a clean, institutional interface (Bloomberg/FactSet aesthetic):
+The repository includes an interactive **Streamlit Quantitative Research & Investment Terminal (`app.py`)** presenting the multi-phase Walk-Forward backtest results, live evolutionary simulations, and Indonesia Stock Exchange (IDX) lot sizing calculations:
 
 ![Streamlit Live Dashboard Preview](results/figures/streamlit_dashboard_preview.png)
 
 ### Terminal Architecture & Component Breakdown
 
-The dashboard is structured into three dedicated research tabs with an interactive execution sidebar:
-
-#### 1. Header & Institutional Metadata Badges
-- **Quant Terminal Banner:** Displays institutional research disclosures and formal framework specification.
-- **Specification Badges:**
-  - `UNIVERSE: 22 IDX30 EQUITIES` — Consistently listed blue-chip assets with full 3-year historical depth.
-  - `MODEL: MEAN-VARIANCE + HHI PENALTY` — Risk-adjusted Sharpe maximization with quadratic concentration penalization.
-  - `OPERATOR CONTROL: DYNAMIC (SRINIVAS & PATNAIK)` — Fitness-variance-driven adaptive crossover ($P_c$) and mutation ($P_m$).
-  - `VALIDATION: 4-PHASE WALK-FORWARD (2025-2026)` — Expanding window out-of-sample backtesting.
-  - `BENCHMARK: IDX30 & 1/N EQUAL WEIGHT` — Evaluated against standard market and passive allocation baselines.
-
-#### 2. Execution Environment & Market Friction Controls (Sidebar)
+#### 1. Execution Environment & Market Friction Controls (Sidebar)
 - **Dynamic Capital Sizing:** User-configurable investment capital in Indonesian Rupiah (default: `Rp 100,000,000`), dynamically recalculating nominal asset allocations and trading lot requirements.
 - **Explicit Friction Disclosures:**
-  - **Acquisition Cost (Buy):** 0.15% brokerage commission.
-  - **Liquidation Cost (Sell):** 0.25% (0.15% brokerage + 0.10% PPh Final transaction tax).
-  - **Risk-Free Rate:** 6.00% p.a. (Bank Indonesia BI-Rate benchmark).
-  - **Rebalancing Horizon:** Quarterly expanding window with continuous intra-phase asset price drift and capital reinvestment.
+  - **Acquisition Cost (Buy):** `0.15%` brokerage commission.
+  - **Liquidation Cost (Sell):** `0.25%` (`0.15%` brokerage + `0.10%` PPh Final transaction tax).
+  - **Risk-Free Rate:** `6.00%` p.a. (Bank Indonesia BI-Rate benchmark).
 
-#### 3. Tab 1 — Walk-Forward Performance (OOS)
-- **High-Precision KPI Scorecards:**
-  - **Total Out-of-Sample Return:** **46.51%** (`+34.14% vs. IDX30 Index`)
-  - **Annualized Sharpe Ratio:** **2.1036** (`+1.7793 vs. IDX30 Index`)
-  - **Annualized Return:** **50.61%** (`+13.88% vs. Standard GA`)
+#### 2. Tab 1 — Walk-Forward Performance (OOS)
+- **Exact Thesis KPI Scorecards:**
+  - **Total Out-of-Sample Return:** **46.49%** (`+33.01% vs. IDX30 Index`)
+  - **Annualized Sharpe Ratio:** **2.1025** (`+1.7258 vs. IDX30 Index`)
+  - **Annualized Return:** **50.59%** (`+13.84% vs. Standard GA`)
   - **Maximum Drawdown:** **-15.74%** (`1.40% less loss than benchmark`)
-  - **Terminal Portfolio Value:** **Rp 146.510.342** (net wealth on Rp 100M starting capital)
-- **Synchronized Plotly Dual-Axis Curves:** Continuous daily cumulative portfolio trajectory (IDR) and peak-to-trough drawdowns (%) across all 4 forward phases, featuring vertical rebalancing demarcation lines (`Rebalance: Phase 2`, `Rebalance: Phase 3`, `Rebalance: Phase 4`).
-- **Actionable IDX Lot Allocation Engine:** Converts continuous optimization weights $\mathbf{w}$ into real-world round trading lots compliant with Indonesia Stock Exchange rules (**1 Lot = 100 shares**):
-  $$\text{Lots}_i = \left\lfloor \frac{w_i \times \text{Capital}}{\text{Price}_i \times 100} \right\rfloor$$
-- **Hypothesis Testing Validation Matrix:** In-app presentation of inferential statistics (Shapiro-Wilk normality, Paired t-test, Wilcoxon Signed-Rank) confirming statistically significant outperformance ($p < 0.001$).
+  - **Terminal Portfolio Value:** **Rp 146.491.375** (net wealth on Rp 100M starting capital)
+- **Synchronized Plotly Dual-Axis Curves:** Continuous daily cumulative portfolio trajectory (IDR) and peak-to-trough drawdowns (%) across all 4 forward phases.
+- **Cumulative & Isolated Phase Tables:** Displays both the 4× rebalanced cumulative WFO summary and the isolated per-phase performance table (`Fase 1` – `Fase 4`).
+- **Actionable IDX Lot Allocation Engine:** Converts optimization weights $\mathbf{w}$ into round trading lots compliant with Indonesia Stock Exchange rules (**1 Lot = 100 shares**).
 
-#### 4. Tab 2 — Algorithm Optimization Simulation (Live AGA vs. SGA)
-- **Custom Universe Selector:** Multi-select stock picker allowing custom sub-baskets across the 22 IDX30 constituents.
-- **Hyperparameter & Constraint Sliders:** Real-time controls for max single-asset allocation ($w_{\max}$), HHI diversification weight ($\lambda_{\text{div}}$), population size ($M$), and generations ($G$).
-- **Live Evolutionary Execution:** Simultaneous execution of AGA and SGA with real-time progress indicators.
-- **Side-by-Side Evolutionary Diagnostics:** Interactive Plotly curves comparing objective fitness convergence, population diversity preservation, and dynamic $P_c$ / $P_m$ rate evolution across generations.
+#### 3. Tab 2 — Algorithm Optimization Simulation (Live AGA vs. SGA)
+- **Interactive Controls:** Customize constituent tickers and hyperparameters (pre-loaded with the tuned thesis defaults: $w_{\max} = 10\%$, $\lambda_{\text{div}} = 0.90$).
+- **Side-by-Side Evolutionary Diagnostics:** Real-time Plotly curves comparing objective fitness convergence, chromosome diversity preservation, and dynamic $P_c$ / $P_m$ rate trajectories.
 
-#### 5. Tab 3 — Asset Universe & Risk Diagnostics
-- **Risk-Return Efficient Frontier:** Scatter plot of constituent assets (Annual Volatility vs. Annual Return), sized and colored by individual Sharpe Ratio.
-- **Correlation Heatmap:** 22 $\times$ 22 pairwise daily return correlation matrix identifying non-correlated diversification candidates.
-- **Normalized Price Trajectories:** Normalized price viewer (`Base = 100`) for historical trend comparison across custom tickers.
-
----
-
-### Local Execution & Cloud CI/CD Deployment
-
-```bash
-# Run locally using Streamlit
-streamlit run app.py
-```
-
-The terminal is deployed to [Streamlit Community Cloud](https://share.streamlit.io/) with automatic continuous integration from this repository's `main` branch. Every push to `main` automatically triggers an automated redeployment to [https://portfolio-optimization-aga.streamlit.app](https://portfolio-optimization-aga.streamlit.app).
+#### 4. Tab 3 — Asset Universe & Risk Diagnostics
+- **Cross-Sectional Risk vs. Return Scatter:** Annualized volatility vs. expected return across the 22 consistent IDX30 equities.
+- **Correlation Heatmap & Normalized Price Viewer:** $22 \times 22$ pairwise return correlation matrix and historical price trajectories (`Base = 100`).
 
 ---
 
 ## 🚀 Quickstart & Local Reproduction
 
-### 1. Clone the Repository
 ```bash
+# 1. Clone the repository
 git clone https://github.com/miftahsuryan/idx30-portfolio-optimization-aga.git
 cd idx30-portfolio-optimization-aga
-```
 
-### 2. Set Up Virtual Environment & Dependencies
-```bash
-# Using standard Python venv
+# 2. Create virtual environment and install dependencies
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-# Or using uv (ultra-fast)
-uv venv
-source .venv/bin/activate
-uv pip install -r requirements.txt
-```
-
-### 3. Launch the Interactive Streamlit Web App
-```bash
+# 3. Launch the Streamlit application
 streamlit run app.py
 ```
-
-### 4. Run the Jupyter Notebooks (Optional)
-Launch the interactive notebooks to explore the raw step-by-step code:
-```bash
-jupyter notebook notebooks/02_idx30_portfolio_optimization_aga.ipynb
-```
-
-
----
-
-## 💼 CV & Career Application Reference
-
-For recruiters and hiring managers: a curated set of ATS-friendly bullet points in both **English and Bahasa Indonesia** is available in [docs/CV_PORTFOLIO_HIGHLIGHTS.md](docs/CV_PORTFOLIO_HIGHLIGHTS.md).
-
-**Core Competencies Demonstrated:**
-- **Evolutionary Metaheuristics:** Genetic Algorithms, Adaptive Parameter Control, Chromosome Encoding.
-- **Quantitative Portfolio Theory:** Mean-Variance, Sharpe Ratio Optimization, Concentration Regularization (HHI).
-- **Time-Series Validation:** Walk-Forward Optimization (WFO), Out-of-Sample Testing, Transaction Cost & Drift Mechanics.
-- **Statistical Inference:** Parametric and Non-Parametric Hypothesis Testing, Multiple Testing Corrections.
-- **Software Engineering:** Modular Python packaging, Clean Code, Fully Reproducible Pipelines.
 
 ---
 
 ## 📜 Citation & Academic Attribution
-
-If you find this codebase or methodology useful in your academic research or quantitative trading applications, please cite:
 
 ```bibtex
 @misc{suryanugraha2026idx30aga,
@@ -302,4 +269,3 @@ If you find this codebase or methodology useful in your academic research or qua
 ## 📄 License
 
 This repository is licensed under the [MIT License](LICENSE).
-

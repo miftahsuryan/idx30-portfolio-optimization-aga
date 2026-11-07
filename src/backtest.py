@@ -308,17 +308,19 @@ def run_isolated_per_phase(
 
     summary_rows = [
         {
-            "Fase": phase_name,
             "Strategi": r["Method"],
             "Total Return (%)": r["Total Return"] * 100.0,
             "Annual Return (%)": r["Annual Return"] * 100.0,
             "Annual Volatility (%)": r["Annual Volatility"] * 100.0,
             "Sharpe Ratio": r["Sharpe Ratio"],
             "Max Drawdown (%)": r["Max Drawdown"] * 100.0,
+            "Transaction Cost (%)": r["Total Fees Paid"] * 100.0,
             "Final Value": r["Final Portfolio Value"],
+            "Phase": phase_name,
         }
         for r in results
     ]
     df_result = pd.DataFrame(summary_rows).sort_values("Sharpe Ratio", ascending=False).reset_index(drop=True)
+    df_result.insert(0, "Rank", range(1, len(df_result) + 1))
     return results, df_result
 

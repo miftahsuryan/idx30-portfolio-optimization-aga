@@ -210,43 +210,22 @@ def load_wfo_weights() -> Tuple[pd.DataFrame, pd.DataFrame]:
 
 @st.cache_data
 def compute_wfo_time_series(capital_idr: float) -> Tuple[Dict[str, any], Dict[str, any], Dict[str, any], Dict[str, any]]:
-    df_raw, _, consistent_tickers, df_selected, _ = load_all_datasets()
+    df_raw, df_clean, consistent_tickers, df_selected, _ = load_all_datasets()
     w_aga_df, w_sga_df = load_wfo_weights()
 
-    phases = [
-        ("Fase 1", "2025-01-30", "2025-04-30"),
-        ("Fase 2", "2025-05-02", "2025-07-31"),
-        ("Fase 3", "2025-08-01", "2025-10-31"),
-        ("Fase 4", "2025-11-03", "2026-01-26"),
-    ]
+    _, _, df_test = src.split_dataset(df_selected)
+    _, _, returns_test = src.compute_statistics(df_test)
+    returns_list = src.get_wfo_test_phase_returns(returns_test)
+    returns_idx_list, w_idx_list = src.get_wfo_idx30_benchmark_phases(df_clean)
 
-    returns_list = []
-    w_aga_list = []
-    w_sga_list = []
-    w_idx_list = []
-    returns_idx_list = []
-
-    df_idx_raw = src.preprocess_stock_data(df_raw)
-    df_idx_raw["Rit"] = df_idx_raw.groupby("ticker")["Close"].pct_change()
-
-    for phase_name, start_d, end_d in phases:
-        df_p = df_selected[(df_selected["Date"] >= start_d) & (df_selected["Date"] <= end_d)]
-        _, _, ret_p = src.compute_statistics(df_p)
-        returns_list.append(ret_p)
-
-        w_aga_list.append(w_aga_df.loc[ret_p.columns, phase_name].values)
-        w_sga_list.append(w_sga_df.loc[ret_p.columns, phase_name].values)
-
-        idx_map = IDX30_WEIGHT_MAPS[phase_name]
-        ret_idx_p, w_idx = src.create_idx_benchmark(df_idx_raw, idx_map, start_d, end_d)
-        w_idx_list.append(w_idx)
-        returns_idx_list.append(ret_idx_p)
-
-    w_eq_list = [np.ones(len(r.columns)) / len(r.columns) for r in returns_list]
+    phases = ["Fase 1", "Fase 2", "Fase 3", "Fase 4"]
+    w_aga_list = [w_aga_df.loc[returns_list[i].columns, p].values for i, p in enumerate(phases)]
+    w_sga_list = [w_sga_df.loc[returns_list[i].columns, p].values for i, p in enumerate(phases)]
+    equal_weight = np.ones(len(consistent_tickers)) / len(consistent_tickers)
 
     res_aga = src.run_rebalancing(w_aga_list, returns_list, "Adaptive GA (AGA, 4×)")
     res_sga = src.run_rebalancing(w_sga_list, returns_list, "Standard GA (SGA, 4×)")
-    res_eq = src.run_rebalancing(w_eq_list, returns_list, "Equal Weight (1/N)")
+    res_eq = src.run_isolated(equal_weight, returns_test, "Equal Weight (1/N)")
     res_idx = src.run_rebalancing(w_idx_list, returns_idx_list, "IDX30 Benchmark")
 
     return res_aga, res_sga, res_eq, res_idx
@@ -515,21 +494,35 @@ with tab1:
     st.plotly_chart(fig_curves, use_container_width=True)
 
     # Comparative Performance Table
-    st.markdown("#### Performance Metrics Summary")
+    st.markdown("#### Cumulative Walk-Forward Performance Summary (4 Phases Combined)")
+    ordered_strategies = [
+        (1, "Adaptive GA (AGA, 4× Rebalanced)", res_aga),
+        (2, "Equal Weight (1/N Buy & Hold)", res_eq),
+        (3, "Standard GA (SGA, 4× Rebalanced)", res_sga),
+        (4, "IDX30 Market Benchmark (4× Rebalanced)", res_idx),
+    ]
     summary_data = [
         {
+            "Rank": rank,
             "Strategy": label,
-            "Total Return (%)": f"{res['Total Return'] * 100:.2f}%",
-            "Annualized Return (%)": f"{res['Annual Return'] * 100:.2f}%",
-            "Annualized Volatility (%)": f"{res['Annual Volatility'] * 100:.2f}%",
+            "Total Return (%)": f"{res['Total Return'] * 100:.4f}%",
+            "Annualized Return (%)": f"{res['Annual Return'] * 100:.4f}%",
+            "Annualized Volatility (%)": f"{res['Annual Volatility'] * 100:.4f}%",
             "Sharpe Ratio": f"{res['Sharpe Ratio']:.4f}",
-            "Max Drawdown (%)": f"{res['Max Drawdown'] * 100:.2f}%",
-            "Total Execution Fees": format_idr(res["Total Fees Paid"] * capital_idr),
+            "Max Drawdown (%)": f"{res['Max Drawdown'] * 100:.4f}%",
+            "Transaction Cost (%)": f"{res['Total Fees Paid'] * 100:.4f}%",
             "Terminal Wealth": format_idr(res["Final Portfolio Value"] * capital_idr),
         }
-        for label, res, _, _, _ in strategies
+        for rank, label, res in ordered_strategies
     ]
     st.dataframe(pd.DataFrame(summary_data), use_container_width=True, hide_index=True)
+
+    with st.expander("Isolated Per-Phase Walk-Forward Evaluation (Fase 1 – Fase 4)"):
+        st.markdown(
+            "Out-of-sample evaluation of each individual 3-month WFO testing window (initial entry cost `0.15%`, ranked by annualized Sharpe Ratio within each phase):"
+        )
+        iso_df = pd.read_csv("results/tables/wfo_isolated_phase_performance.csv")
+        st.dataframe(iso_df, use_container_width=True, hide_index=True)
 
     # Phase-by-Phase Weight Allocation Analysis
     st.markdown("#### Walk-Forward Asset Weights & Rebalancing Allocations")
@@ -605,12 +598,14 @@ with tab1:
             st.plotly_chart(fig_donut, use_container_width=True)
 
     # Statistical Inference & Multi-Run Stability
-    with st.expander("Inferential Hypothesis Testing & Robustness Analysis (80 Runs)"):
+    with st.expander("Extended Multi-Run Stochastic Stability & Statistical Evaluation (4 Phases × 10 Paired Runs = 80 Runs)"):
         st.markdown(
             r"""
-            Multi-run verification comparing **Standard GA (SGA)** and **Adaptive GA (AGA)** across 10 independent random seeds per phase (80 evaluations total).
-            - **Normality Test:** Evaluated using the **Shapiro-Wilk** test on paired run differences ($\Delta = \text{Fitness}_{\text{AGA}} - \text{Fitness}_{\text{SGA}}$).
-            - **Hypothesis Test Routing:** Paired Student's t-test applied for normal differences; non-parametric Wilcoxon Signed-Rank test applied otherwise.
+            **Methodological Context:** Because SGA and AGA are stochastic population-based metaheuristics, an extended multi-run statistical evaluation is conducted across the 4 Walk-Forward retraining windows ($N_{\text{runs}} = 10$ paired seeds per phase, `SEED = 29..38`, total $80$ optimization runs).
+            - **Paired Experimental Design:** For each seed $r \in \{1, \dots, 10\}$, both SGA ($\text{Pop}=440, \text{Gen}=100$) and AGA ($\text{Pop}=500, \text{Gen}=88$) start from the **exact same initial population (`shared_population`)** under an identical $44,000$ function evaluation (NFE) budget.
+            - **Two-Stage Statistical Testing Pipeline:**
+              1. **Shapiro-Wilk Normality Test ($\alpha = 0.05$):** Applied to the paired differences $d_r = X_{\text{AGA}, r} - X_{\text{SGA}, r}$ ($n = 10$ pairs per phase).
+              2. **Automatic Test Routing:** Uses the parametric **Paired Student's t-test** (`scipy.stats.ttest_rel`) when $p_{\text{Shapiro}} > 0.05$ (*Normal*), and the non-parametric **Wilcoxon Signed-Rank Test** (`scipy.stats.wilcoxon`) when $p_{\text{Shapiro}} \le 0.05$ (*Tidak Normal*).
             """
         )
         stats_df = pd.read_csv("results/tables/statistical_significance_tests.csv")
@@ -623,7 +618,7 @@ with tab1:
 with tab2:
     st.markdown('<div class="kicker">Evolutionary Simulation Engine</div>', unsafe_allow_html=True)
     st.markdown("#### Real-Time Portfolio Optimization (AGA vs. SGA)")
-    st.caption("Customize constituent assets, penalty constraints, and genetic hyperparameters to run live comparative convergence.")
+    st.caption("Customize constituent assets, penalty constraints (tuned thesis defaults: w_max = 10%, λ_div = 0.90), and genetic hyperparameters to run live comparative convergence.")
 
     with st.form("optimizer_form"):
         col_param1, col_param2, col_param3 = st.columns(3)
@@ -633,19 +628,19 @@ with tab2:
             selected_assets = st.multiselect(
                 "Select Tickers:",
                 options=consistent_tickers,
-                default=consistent_tickers[:14],
-                help="Subset of IDX30 stocks to form the portfolio optimization space.",
+                default=consistent_tickers,
+                help="Subset of IDX30 stocks to form the portfolio optimization space (default: all 22 consistent IDX30 stocks).",
             )
 
         with col_param2:
             st.markdown("**2. Risk & Regularization**")
             max_w_input = st.slider("Max Single-Asset Weight (%):", 10, 50, int(MAX_WEIGHT_DEFAULT * 100), 5) / 100.0
-            lambda_div_input = st.slider("HHI Diversification Penalty (λ):", 0.0, 0.20, LAMBDA_DIV_DEFAULT, 0.01)
+            lambda_div_input = st.slider("HHI Diversification Penalty (λ):", 0.0, 1.0, float(LAMBDA_DIV_DEFAULT), 0.05)
 
         with col_param3:
             st.markdown("**3. Hyperparameters**")
-            pop_size_input = st.slider("Population Size (M):", 40, 300, 100, 20)
-            generations_input = st.slider("Generations (G):", 15, 100, 40, 5)
+            pop_size_input = st.slider("Population Size (M):", 40, 500, 100, 20)
+            generations_input = st.slider("Generations (G):", 15, 100, 50, 5)
             seed_input = st.number_input("RNG Seed:", value=SEED, step=1)
 
         btn_run = st.form_submit_button("Execute Optimization Simulation", use_container_width=True)

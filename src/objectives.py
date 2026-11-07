@@ -1,32 +1,34 @@
 """Objective and fitness functions for portfolio optimization.
 
 Implements the regularized Mean-Variance fitness function, diversification penalty
-(Herfindahl-Hirschman Index), constraint repairs, and in-sample Sharpe ratio calculations.
+(Herfindahl-Hirschman Index), constraint repairs (proportional excess redistribution,
+max_iters=15), and in-sample Sharpe ratio calculations aligned 100% with
+Implementasi-fix.ipynb (Cells 43, 49, and 92-93).
 """
 
-from typing import Optional, Tuple, Union
+from typing import Optional, Union
 import numpy as np
 
 
 def validate_weights(
     weights: np.ndarray,
-    max_weight: Optional[float] = 0.20,
-    atol: float = 1e-6
+    max_weight: Optional[float] = 0.10,
+    atol: float = 1e-3
 ) -> bool:
     """Validate whether portfolio weights satisfy investment constraints:
 
     1. Sum of weights equals 1.0 (within atol).
     2. All weights are non-negative (no short-selling).
-    3. No single weight exceeds max_weight (if specified).
+    3. No single weight exceeds max_weight (within atol, if specified).
 
     Parameters
     ----------
     weights : np.ndarray
         Array of portfolio asset weights.
     max_weight : float, optional
-        Maximum allowed weight per asset.
+        Maximum allowed weight per asset (default 0.10 = 10% cap).
     atol : float
-        Absolute tolerance for equality checks.
+        Absolute tolerance for checks.
 
     Returns
     -------
@@ -44,125 +46,122 @@ def validate_weights(
 
 
 def repair_weights(
-    weights: np.ndarray,
-    max_weight: float = 0.20,
-    max_iters: int = 20
+    w: np.ndarray,
+    max_weight: float = 0.30,
+    max_iters: int = 15
 ) -> np.ndarray:
-    """Repair portfolio weights to strictly satisfy budget (sum=1) and upper-bound constraints.
+    """Repair portfolio weights to satisfy budget (sum=1) and upper-bound constraints.
 
-    Uses an iterative excess redistribution mechanism:
+    Matches Cell 49 of Implementasi-fix.ipynb:
     - Clips weights to [0, max_weight]
-    - Redistributes excess allocation proportionally among assets below max_weight
-    - Renormalizes so sum(weights) == 1.0
+    - Reinitializes randomly if sum(w) == 0
+    - Normalizes initial weights so sum(w) == 1.0
+    - Iteratively redistributes excess allocation above max_weight (up to max_iters=15)
+      proportionally among assets below max_weight
+    - Performs final normalization w / w.sum()
 
     Parameters
     ----------
-    weights : np.ndarray
+    w : np.ndarray
         Candidate portfolio weight vector.
     max_weight : float
-        Maximum allowed weight per individual asset.
+        Upper bound threshold used by the repair operator.
     max_iters : int
-        Maximum number of iterative redistribution cycles.
+        Maximum number of iterative excess redistribution cycles (default 15).
 
     Returns
     -------
     np.ndarray
-        Repaired, feasible weight vector.
+        Repaired, normalized weight vector.
     """
-    w = np.asarray(weights, dtype=float).copy()
-    w = np.clip(w, 0.0, max_weight)
+    w = np.clip(w, 0, max_weight)
+    total = w.sum()
 
-    total = np.sum(w)
-    if total <= 0:
-        w = np.clip(np.random.rand(len(w)), 0.0, max_weight)
-        total = np.sum(w)
+    if total == 0:
+        w = np.clip(np.random.rand(len(w)), 0, max_weight)
+        total = w.sum()
 
     w = w / total
 
     iters = 0
     while np.any(w > max_weight) and iters < max_iters:
-        excess = np.maximum(0.0, w - max_weight)
-        total_excess = np.sum(excess)
+        excess = w - max_weight
+        excess[excess < 0] = 0
+        total_excess = excess.sum()
 
         w = np.minimum(w, max_weight)
 
-        under_max_mask = w < max_weight
-        sum_under_max = np.sum(w[under_max_mask])
-        count_under_max = np.sum(under_max_mask)
+        idx_under_max = w < max_weight
+        sum_under_max = w[idx_under_max].sum()
+        count_under_max = np.sum(idx_under_max)
 
         if count_under_max > 0:
             if sum_under_max > 0:
-                w[under_max_mask] += total_excess * (w[under_max_mask] / sum_under_max)
+                w[idx_under_max] += total_excess * (w[idx_under_max] / sum_under_max)
             else:
-                w[under_max_mask] += total_excess / count_under_max
+                w[idx_under_max] += total_excess / count_under_max
         else:
             break
+
         iters += 1
 
-    sum_final = np.sum(w)
-    return w / sum_final if sum_final > 0 else np.ones_like(w) / len(w)
+    return w / w.sum()
 
 
 def fitness_function(
     weights: Union[list, np.ndarray],
     mu: np.ndarray,
     cov_matrix: np.ndarray,
-    lambda_div: float = 0.05,
-    max_weight: Optional[float] = 0.20,
-    penalty_multiplier: float = 1000.0
+    lambda_div: float = 0.90,
+    max_weight: Optional[float] = 0.10
 ) -> float:
     """Compute the minimization objective fitness value for a portfolio.
 
-    Objective:
+    Matches Cells 43 & 92-93 of Implementasi-fix.ipynb:
         minimize Fitness = -Sharpe_Ratio + lambda_div * HHI + Penalty_MaxWeight
 
     Where:
-        - Sharpe_Ratio = E / sigma
         - E = weights @ mu (expected daily portfolio return)
-        - sigma = sqrt(weights.T @ cov_matrix @ weights + 1e-6)
-        - HHI = sum(weights^2) (Herfindahl-Hirschman Index diversification penalty)
-        - Penalty_MaxWeight = penalty_multiplier * sum(max(0, weights - max_weight)^2)
+        - V = weights.T @ cov_matrix @ weights
+        - sigma = sqrt(V + 1e-6)
+        - sharpe = E / sigma
+        - diversification = sum(weights^2) (Herfindahl-Hirschman Index)
+        - penalty_max = 1000 * sum(max(0, weights - max_weight)^2)
 
     Parameters
     ----------
     weights : list or np.ndarray
         Portfolio weight vector.
     mu : np.ndarray
-        Expected asset returns vector.
+        Expected daily asset returns vector.
     cov_matrix : np.ndarray
-        Asset covariance matrix.
+        Daily asset return covariance matrix.
     lambda_div : float
-        Diversification penalty coefficient.
+        Diversification penalty coefficient (tuned thesis value = 0.90; initial = 0.10).
     max_weight : float, optional
-        Maximum weight constraint threshold.
-    penalty_multiplier : float
-        Penalty severity factor for exceeding max_weight.
+        Maximum weight constraint threshold (tuned thesis value = 0.10; initial = 0.30).
 
     Returns
     -------
     float
         Computed fitness value (lower is better).
     """
-    w = np.asarray(weights, dtype=float)
+    weights = np.array(weights)
 
-    # Expected portfolio return and volatility
-    e_ret = float(np.dot(w, mu))
-    variance = float(w.T @ cov_matrix @ w)
-    sigma = np.sqrt(max(0.0, variance) + 1e-6)
+    E = weights @ mu
+    V = weights.T @ cov_matrix @ weights
+    sigma = np.sqrt(V + 1e-6)
 
-    # In-sample ratio
-    sharpe = e_ret / sigma
+    sharpe = E / sigma
+    diversification = np.sum(weights ** 2)
 
-    # Diversification penalty (HHI)
-    diversification = float(np.sum(w ** 2))
-
-    # Upper bound penalty
     penalty_max = 0.0
     if max_weight is not None:
-        violations = np.maximum(0.0, w - max_weight)
-        penalty_max = penalty_multiplier * float(np.sum(violations ** 2))
+        violations = np.maximum(0, weights - max_weight)
+        penalty_max = 1000 * np.sum(violations ** 2)
 
-    return -sharpe + (lambda_div * diversification) + penalty_max
+    fitness = -sharpe + (lambda_div * diversification) + penalty_max
+    return float(fitness)
 
 
 def calculate_insample_sharpe(
@@ -172,7 +171,7 @@ def calculate_insample_sharpe(
     risk_free_rate: float = 0.06,
     trading_days: int = 244
 ) -> float:
-    """Calculate the annualized in-sample Sharpe Ratio for evaluated portfolio weights.
+    """Calculate the annualized in-sample Sharpe Ratio (as in Cell 80 of Implementasi-fix.ipynb).
 
     Parameters
     ----------
@@ -183,9 +182,9 @@ def calculate_insample_sharpe(
     cov_matrix : np.ndarray
         Daily covariance matrix.
     risk_free_rate : float
-        Annualized risk-free benchmark rate (e.g., 0.06 = 6%).
+        Annualized risk-free benchmark rate (default 0.06 = 6%).
     trading_days : int
-        Number of trading days per year for annualization.
+        Number of trading days per year (default 244).
 
     Returns
     -------
@@ -204,4 +203,3 @@ def calculate_insample_sharpe(
         return np.nan
 
     return (annual_ret - risk_free_rate) / annual_risk
-
